@@ -219,7 +219,7 @@ import logging
 from Utils.logger import setup_logger
 
 # ✅ Correct config path
-CONFIG_PATH = r"C:\Users\HP\Desktop\Agent-AI\config\Configratution.json"
+CONFIG_PATH = r"C:\Users\HP\Desktop\Agent-AI\config\Configration.json"
 
 logger = setup_logger()
 logger.info("✅ Logger setup completed successfully.")
