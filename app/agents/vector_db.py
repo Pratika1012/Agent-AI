@@ -31,7 +31,7 @@ class VectorDB:
         self.index = pc.Index(INDEX_NAME)  # ✅ Use `pc.Index()` instead of `pinecone.Index()`
 
         # ✅ Initialize LangChain Pinecone VectorStore
-        self.db = PineconeVectorStore(self.index, self.embed_model.embed_query, "text")
+        self.db = PineconeVectorStore(self.index, self.embed_model.embed_documents, "text")
 
     def store_interaction(self, query, response):
         """
