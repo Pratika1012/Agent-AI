@@ -5,14 +5,12 @@ from langchain_community.vectorstores import Pinecone as LangchainPinecone
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.schema import Document
 
+
+
 class VectorDB:
     def __init__(self, index_name: str, persist_directory=None):
         """
         Initialize Pinecone vector storage with Hugging Face embeddings.
-
-        Args:
-            index_name (str): Name of the Pinecone index.
-            persist_directory (str, optional): Not used for Pinecone. Included for compatibility.
         """
         # ✅ Load Hugging Face sentence-transformer model
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
@@ -57,7 +55,6 @@ class VectorDB:
             pinecone_api_key=self.api_key,
             environment=self.environment
         )
-
     def store_interaction(self, query: str, response: str):
         """
         Stores user queries and responses in Pinecone.
