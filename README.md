@@ -27,13 +27,7 @@ This project implements an AI-powered research agent designed to retrieve, analy
    ```bash
    git push origin feature-branch
 
-5.**Merge Changes to Main Branch**
-      ```bash
-   git checkout main
-   git merge feature-branch
-   git push origin main
-6.**Pull Latest Changes**
-    git pull origin main
+
 
 
    
