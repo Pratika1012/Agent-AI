@@ -12,9 +12,9 @@ markdown-it-py
 mdurl
 pygments
 langchain_community
-chromadb==0.6.3 # Use the latest stable version of ChromaDB
+pinecone-client==6.0.0 # Use the latest stable version of ChromaDB
 sentence-transformers
-pysqlite3-binary
+
 torch
 transformers
 
