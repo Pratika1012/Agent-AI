@@ -31,7 +31,7 @@ class LLMOrchestrator:
         self.fallback_models = ["claude-2", "mixtral-8x7b-32768"]
 
         # ✅ Initialize ChromaDB for memory storage (Hugging Face embeddings)
-        self.memory = VectorDB()
+        self.memory = VectorDB(index_name="ai-memory")
 
     def select_model(self, query: str) -> str:
         """Dynamically selects the best LLM based on query intent."""
