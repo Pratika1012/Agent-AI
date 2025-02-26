@@ -17,7 +17,8 @@ PINECONE_ENV = secrets["pinecone_config"]["environment"]
 INDEX_NAME = secrets["pinecone_config"]["index_name"]
 
 # ✅ Initialize Pinecone
-pc = pinecone.Pinecone(api_key=PINECONE_API_KEY)
+pc = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
+
 
 # ✅ Check if the index already exists before creating
 existing_indexes = [idx["name"] for idx in pc.list_indexes()]
