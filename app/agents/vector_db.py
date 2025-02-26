@@ -3,6 +3,7 @@ import chromadb
 from langchain.vectorstores import Chroma
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.schema import Document
+from langchain.document_loaders import TextLoader
 
 class VectorDB:
     def __init__(self, persist_directory="db_memory"):
@@ -16,18 +17,15 @@ class VectorDB:
         if not os.path.exists(persist_directory):
             os.makedirs(persist_directory)
 
-        # ✅ Initialize ChromaDB with Hugging Face Embeddings
-        self.db = Chroma(
-            persist_directory=persist_directory,
-            embedding_function=self.embed_model
-        )
+        # ✅ Correctly initialize ChromaDB
+        self.db = Chroma(persist_directory=persist_directory, embedding_function=self.embed_model)
 
     def store_interaction(self, query, response):
         """
         Stores user queries and responses in ChromaDB for future recall.
         """
-        doc = Document(page_content=query, metadata={"response": response})
-        self.db.add_texts([query], metadatas=[{"response": response}])
+        doc = [Document(page_content=query, metadata={"response": response})]
+        self.db.add_documents(doc)
 
     def retrieve_similar(self, query, k=2):
         """
