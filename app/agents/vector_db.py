@@ -24,7 +24,7 @@ class VectorDB:
         # ✅ Ensure Pinecone Index exists
         existing_indexes = [index_info["name"] for index_info in pinecone_client.list_indexes()]
         if INDEX_NAME not in existing_indexes:
-            pinecone_client.create_index(name=INDEX_NAME, dimension=384, metric="cosine"
+            pinecone_client.create_index(name=INDEX_NAME, dimension=384, metric="cosine")
 
 
         # ✅ Connect to Pinecone Index
