@@ -3,9 +3,17 @@ import toml
 import pinecone
 from pinecone import Pinecone
 from pinecone import ServerlessSpec
-import streamlit as st
 from langchain_community.vectorstores import Pinecone as LangchainPinecone
 from langchain_community.embeddings import HuggingFaceEmbeddings
+import streamlit as st
+import asyncio
+
+# ✅ Ensure an event loop exists
+try:
+    asyncio.get_running_loop()
+except RuntimeError:
+    asyncio.set_event_loop(asyncio.new_event_loop())
+
 
 
 # ✅ Load secrets from Streamlit's secrets management
