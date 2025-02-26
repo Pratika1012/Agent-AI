@@ -17,10 +17,10 @@ This project implements an AI-powered research agent designed to retrieve, analy
    git clone https://github.com/yourusername/agentic-ai-research-agent.git
    cd agentic-ai-research-agent
 2. **Check Current Branch:**
-
-   git branch
+    ```bash
+    git branch
 3.**Add and Commit Changes**
-   
+    ```bash
    git add .
    git commit -m "Added feature XYZ"
 4.**Push Changes to GitHub**
