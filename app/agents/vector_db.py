@@ -10,7 +10,7 @@ PINECONE_ENV = "us-east-1"
 INDEX_NAME = "ai-memory"
 
 # ✅ Initialize Pinecone
-pinecone.init(api_key=PINECONE_API_KEY,PINECONE_ENV)
+pinecone.init(api_key=PINECONE_API_KEY,environment=PINECONE_ENV)
 
 class VectorDB:
     def __init__(self):
