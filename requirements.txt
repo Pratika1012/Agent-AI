@@ -13,7 +13,6 @@ mdurl
 pygments
 langchain_community
 chromadb==0.6.3 # Use the latest stable version of ChromaDB
-sqlite3==3.49.1
 sentence-transformers
 pysqlite3-binary
 
