@@ -2,7 +2,7 @@ import os
 import toml
 import pinecone
 from pinecone import Pinecone
-
+from pinecone import ServerlessSpec
 import streamlit as st
 from langchain.vectorstores import Pinecone
 from langchain.embeddings import HuggingFaceEmbeddings
@@ -18,10 +18,10 @@ INDEX_NAME = secrets["pinecone_config"]["index_name"]
 # ✅ Initialize Pinecone
 pc = pinecone.Pinecone(api_key=PINECONE_API_KEY)
 
-
+spec = ServerlessSpec(cloud="aws", region="us-east-1") 
 # ✅ Check if the index exists, else create one
 if INDEX_NAME not in pc.list_indexes():
-    pc.create_index(name=INDEX_NAME, dimension=384, metric="cosine")
+    pc.create_index(name=INDEX_NAME, dimension=384, metric="cosine", spec=spec)
 
 index = pc.Index(INDEX_NAME)
  # 384 is the embedding size for MiniLM
@@ -59,26 +59,3 @@ class VectorDB:
         index.delete(delete_all=True)
 
 # ✅ Streamlit UI
-st.title("🔍 Pinecone-Powered Vector Search")
-
-# Initialize the vector database
-vector_db = VectorDB()
-
-# User input
-query = st.text_input("Enter your query:")
-
-if st.button("Search"):
-    if query:
-        results = vector_db.retrieve_similar(query, k=2)
-        if results:
-            st.write("### Similar Responses:")
-            for res in results:
-                st.write(f"- {res}")
-        else:
-            st.warning("No similar results found.")
-    else:
-        st.error("Please enter a query.")
-
-if st.button("Clear Memory"):
-    vector_db.clear_memory()
-    st.success("All stored interactions have been cleared.")
