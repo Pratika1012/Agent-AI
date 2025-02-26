@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-import pinecone
+from pinecone import Pinecone
 from langchain.vectorstores import Pinecone
 from langchain.embeddings import HuggingFaceEmbeddings  # ✅ No API key required
 from langchain.schema import Document
@@ -11,7 +11,9 @@ PINECONE_API_KEY = st.secrets["api_keys"]["pinecone"]  # Set your Pinecone API k
 PINECONE_ENV = "us-east-1"  # Change this based on your Pinecone environment
 INDEX_NAME = "ai-memory"
 
-pinecone_client = pinecone.Pinecone(api_key=PINECONE_API_KEY)
+pc = Pinecone(api_key='your-api-key')
+
+       
 
 class VectorDB:
     def __init__(self, index_name="ai-memory"):
@@ -27,7 +29,7 @@ class VectorDB:
             pinecone_client.create_index(name=index_name, dimension=384, metric="cosine")
 
         # ✅ Now Connect to Pinecone Index
-        self.index = pinecone.Index(index_name)
+        self.index = pc.Index(index_name)
 
 
         # ✅ Initialize LangChain Pinecone VectorStore
