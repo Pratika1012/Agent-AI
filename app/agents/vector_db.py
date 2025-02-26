@@ -3,6 +3,7 @@ import streamlit as st
 from pinecone import Pinecone, ServerlessSpec
 from langchain.vectorstores import Pinecone as PineconeVectorStore
 from langchain.embeddings import HuggingFaceEmbeddings  
+import pinecone
 
 # ✅ Ensure Pinecone API Key is Loaded Correctly
 # ✅ Debug Pinecone API Key Retrieval
