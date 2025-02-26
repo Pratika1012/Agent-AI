@@ -16,7 +16,7 @@ if not PINECONE_API_KEY:
 
 INDEX_NAME = "ai-memory"
 
-# ✅ Initialize Pinecone Client
+# ✅ Correct Pinecone Initialization
 pc = Pinecone(api_key=PINECONE_API_KEY)
 
 class VectorDB:
