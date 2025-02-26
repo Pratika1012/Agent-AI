@@ -16,7 +16,7 @@ if not PINECONE_API_KEY:
 
 INDEX_NAME = "ai-memory"
 
-# ✅ Initialize Pinecone Client (Remove pinecone.init)
+# ✅ Initialize Pinecone Client
 pc = Pinecone(api_key=PINECONE_API_KEY)
 
 class VectorDB:
@@ -36,7 +36,7 @@ class VectorDB:
         # ✅ Connect to the index
         self.index = pc.Index(INDEX_NAME)
 
-        # ✅ Use PineconeVectorStore
+        # ✅ Use PineconeVectorStore Correctly
         self.db = PineconeVectorStore.from_existing_index(INDEX_NAME, self.embed_model)
 
     def store_interaction(self, query, response):
