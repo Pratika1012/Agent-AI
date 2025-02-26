@@ -5,8 +5,8 @@ from pinecone import Pinecone, ServerlessSpec
 from langchain_community.vectorstores import Pinecone as PineconeVectorStore
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
-# ✅ Load API Key
-PINECONE_API_KEY = st.secrets.get("api_keys", {}).get("pinecone", None)
+# ✅ Load API Key Correctly (Fixed!)
+PINECONE_API_KEY = st.secrets.get("pinecone_api_key", None)  # ✅ Now matches `secrets.toml`
 
 # ✅ Fallback to Environment Variable
 if not PINECONE_API_KEY:
@@ -57,9 +57,9 @@ class VectorDB:
             self.db = PineconeVectorStore(
                 index_name=INDEX_NAME,
                 embedding=self.embed_model,
-                pinecone_api_key=PINECONE_API_KEY,
-                text_key="text",  # ✅ Explicitly define text key
-                namespace=""  # ✅ Avoid namespace-related errors
+                pinecone_api_key=PINECONE_API_KEY,  # ✅ API Key now matches `secrets.toml`
+                text_key="text",
+                namespace=""
             )
             st.success("✅ Pinecone Vector Store Initialized Successfully!")
         
