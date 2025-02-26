@@ -1,6 +1,5 @@
 streamlit==1.42.2
 requests
-chromadb
 langchain
 huggingface-hub
 torch
@@ -14,4 +13,3 @@ mdurl
 pygments
 langchain_community
 chromadb==0.6.3  # Use the latest stable version of ChromaDB
- # Ensure SQLite version is 3.35.0 or higher
