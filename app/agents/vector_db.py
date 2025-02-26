@@ -1,4 +1,5 @@
 import os
+import streamlit as st
 import pinecone
 from langchain.vectorstores import Pinecone
 from langchain.embeddings import HuggingFaceEmbeddings  # ✅ No API key required
