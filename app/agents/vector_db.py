@@ -5,19 +5,23 @@ from langchain.vectorstores import Pinecone as PineconeVectorStore
 from langchain.embeddings import HuggingFaceEmbeddings  
 
 # ✅ Ensure Pinecone API Key is Loaded Correctly
+# ✅ Debug Pinecone API Key Retrieval
 try:
     PINECONE_API_KEY = st.secrets["api_keys"]["pinecone"]
+    if not PINECONE_API_KEY:
+        raise ValueError("Pinecone API Key is empty.")
+    st.success("✅ Pinecone API Key successfully loaded.")  # Debugging message
 except KeyError:
     st.error("❌ Pinecone API key is missing in Streamlit secrets. Check secrets.toml!")
     raise ValueError("Pinecone API key not found!")
 
-if not PINECONE_API_KEY:
-    raise ValueError("❌ Pinecone API Key Not Found! Check Streamlit secrets.")
+# ✅ Debugging API Key Output
+st.write(f"Pinecone API Key (masked): {PINECONE_API_KEY[:5]}...")  # Print first 5 characters
 
 INDEX_NAME = "ai-memory"
 
 # ✅ Correct Pinecone Initialization
-pc = Pinecone(api_key=PINECONE_API_KEY)
+pinecone.init(api_key=PINECONE_API_KEY, environment="us-east-1") 
 
 class VectorDB:
     def __init__(self):
