@@ -1,5 +1,3 @@
-
-
 import streamlit as st
 from agents.llm_orchestration import LLMOrchestrator
 from agents.research_agent import ResearchAgent
@@ -7,6 +5,8 @@ from Utils.token_counter import count_tokens
 import os
 import logging
 from Utils.logger import setup_logger
+
+st.write(st.secrets)
 
 # ✅ Correct config path
 CONFIG_PATH = r"C:\Users\HP\Desktop\Agent-AI\config\Configration.json"
