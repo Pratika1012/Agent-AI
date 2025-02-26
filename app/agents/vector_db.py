@@ -4,16 +4,15 @@ from pinecone import Pinecone, ServerlessSpec
 from langchain.vectorstores import Pinecone as PineconeVectorStore
 from langchain.embeddings import HuggingFaceEmbeddings  
 
-# ✅ Ensure Pinecone API Key is Loaded
+# ✅ Ensure Pinecone API Key is Loaded Correctly
 try:
-    PINECONE_API_KEY = st.secrets["api_keys"].get("pinecone", None)
-
-if not PINECONE_API_KEY:
-    raise ValueError("❌ Pinecone API Key Not Found! Check Streamlit secrets.")
-
+    PINECONE_API_KEY = st.secrets["api_keys"]["pinecone"]
 except KeyError:
     st.error("❌ Pinecone API key is missing in Streamlit secrets. Check secrets.toml!")
     raise ValueError("Pinecone API key not found!")
+
+if not PINECONE_API_KEY:
+    raise ValueError("❌ Pinecone API Key Not Found! Check Streamlit secrets.")
 
 INDEX_NAME = "ai-memory"
 
