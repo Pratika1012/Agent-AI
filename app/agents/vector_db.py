@@ -9,8 +9,10 @@ from langchain.docstore.document import Document as LangchainDocument
 # ✅ Initialize Pinecone
 PINECONE_API_KEY =st.secrets["api_keys"]["pinecone"]  # Set your Pinecone API key
 PINECONE_ENV = "us-east-1"  # Change this based on your Pinecone environment
+INDEX_NAME = "ai-memory"
 
-pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
+pinecone_client = pinecone.Pinecone(api_key=PINECONE_API_KEY)
+
 
 class VectorDB:
     def __init__(self, index_name="memory-db"):
@@ -20,11 +22,14 @@ class VectorDB:
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         # ✅ Ensure Pinecone Index exists
-        if index_name not in pinecone.list_indexes():
-            pinecone.create_index(name=index_name, dimension=384, metric="cosine")
+        existing_indexes = [index_info["name"] for index_info in pinecone_client.list_indexes()]
+        if INDEX_NAME not in existing_indexes:
+            pinecone_client.create_index(name=INDEX_NAME, dimension=384, metric="cosine"
+
 
         # ✅ Connect to Pinecone Index
-        self.index = pinecone.Index(index_name)
+        self.index = pinecone_client.Index(index_name)
+
 
         # ✅ Initialize LangChain Pinecone VectorStore
         self.db = Pinecone(self.index, self.embed_model.embed_query, "text")
