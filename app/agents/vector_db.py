@@ -1,17 +1,15 @@
 import os
 import streamlit as st
-import pinecone
+from pinecone import Pinecone, ServerlessSpec
 from langchain.vectorstores import Pinecone as PineconeVectorStore
 from langchain.embeddings import HuggingFaceEmbeddings  
 
-# ✅ Get Pinecone API Key from Streamlit secrets or environment
+# ✅ Get Pinecone API Key
 PINECONE_API_KEY = st.secrets["api_keys"]["pinecone"]
-PINECONE_ENV = "us-east-1"  # ✅ Define environment properly
-
 INDEX_NAME = "ai-memory"
 
-# ✅ Corrected Pinecone Initialization
-pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)  # ✅ Corrected Syntax
+# ✅ Initialize Pinecone Client
+pc = Pinecone(api_key=PINECONE_API_KEY)
 
 class VectorDB:
     def __init__(self):
@@ -19,11 +17,16 @@ class VectorDB:
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         # ✅ Ensure the index exists
-        if INDEX_NAME not in pinecone.list_indexes():
-            pinecone.create_index(INDEX_NAME, dimension=384, metric="cosine")
+        if INDEX_NAME not in pc.list_indexes().names():
+            pc.create_index(
+                name=INDEX_NAME,
+                dimension=384,
+                metric="cosine",
+                spec=ServerlessSpec(cloud="aws", region="us-east-1")  # ✅ Required for Pinecone v3
+            )
 
         # ✅ Connect to the index
-        self.index = pinecone.Index(INDEX_NAME)
+        self.index = pc.Index(INDEX_NAME)
 
         # ✅ Use PineconeVectorStore
         self.db = PineconeVectorStore.from_existing_index(INDEX_NAME, self.embed_model)
