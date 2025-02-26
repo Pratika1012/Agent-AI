@@ -11,7 +11,7 @@ PINECONE_API_KEY = st.secrets["api_keys"]["pinecone"]  # Set your Pinecone API k
 PINECONE_ENV = "us-east-1"  # Change this based on your Pinecone environment
 INDEX_NAME = "ai-memory"
 
-pc = Pinecone(api_key='your-api-key')
+pc = Pinecone(api_key=PINECONE_API_KEY)
 
        
 
