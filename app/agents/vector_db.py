@@ -25,12 +25,14 @@ class VectorDB:
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         # ✅ Ensure the index exists
-        if INDEX_NAME not in pc.list_indexes().names():  # ✅ Fix: Use .names()
+        if INDEX_NAME not in [index['name'] for index in pc.list_indexes()]:
+          # ✅ Fix: Use .names()
             pc.create_index(
                 name=INDEX_NAME,
                 dimension=384,
                 metric="cosine",
-                spec=ServerlessSpec(cloud="aws", region="us-east-1")  # ✅ Required for Pinecone v3
+                spec=ServerlessSpec(cloud="aws", region="us-east-1")
+                  # ✅ Required for Pinecone v3
             )
 
         # ✅ Connect to the index
