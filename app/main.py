@@ -5,6 +5,12 @@ from Utils.token_counter import count_tokens
 import os
 import logging
 from Utils.logger import setup_logger
+import asyncio
+
+try:
+    asyncio.get_running_loop()
+except RuntimeError:
+    asyncio.set_event_loop(asyncio.new_event_loop())
 
 st.write(st.secrets)
 
