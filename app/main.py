@@ -7,6 +7,9 @@ from Utils.token_counter import count_tokens
 import os
 import logging
 from Utils.logger import setup_logger
+import sqlite3
+print(sqlite3.sqlite_version)
+
 
 # ✅ Correct config path
 CONFIG_PATH = r"C:\Users\HP\Desktop\Agent-AI\config\Configration.json"
