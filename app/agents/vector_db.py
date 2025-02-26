@@ -3,10 +3,10 @@ import pinecone  # ✅ Import Pinecone
 from langchain.vectorstores import Pinecone
 from langchain.embeddings import HuggingFaceEmbeddings  # ✅ No API key required
 from langchain.schema import Document
-from pinecone import Pinecone as PineconeClient
+ 
 
 class VectorDB:
-    def __init__(self, index_name="my_vector_index"):
+    def __init__(self, index_name="ai-memory"):
         """
         Initialize Pinecone vector storage with Hugging Face embeddings.
         """
