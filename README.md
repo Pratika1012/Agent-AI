@@ -5,15 +5,9 @@
 This project implements an AI-powered research agent designed to retrieve, analyze, and summarize information while optimizing multi-step reasoning, memory retention, and efficient orchestration of large language models (LLMs). It leverages advanced prompting styles and integrates with Groq Cloud for multi-LLM orchestration. An optional vector database integration allows for memory retention across sessions.
 
 ## Project Structure
+![Untitled diagram-2025-02-26-070331](https://github.com/user-attachments/assets/bd2973f7-c889-4788-8d24-c37c2a3c1292)
 
-- **src/**: Contains the source code for the project.
-  - **agent/**: Core agent logic including dynamic prompting and LLM orchestration.
-  - **memory/**: Vector DB integration for memory retention.
-  - **utils/**: Utility modules for logging and token counting.
-- **logs/**: Directory where runtime logs are stored.
-- **config.json**: Configuration file for storing sensitive keys (e.g., API key).
-- **requirements.txt**: List of required Python packages.
-- **README.md**: This file.
+
 
 ## Setup
 
