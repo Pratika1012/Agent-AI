@@ -6,7 +6,7 @@ from langchain.schema import Document
 from langchain.docstore.document import Document as LangchainDocument
 
 # ✅ Initialize Pinecone
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")  # Set your Pinecone API key
+PINECONE_API_KEY =st.secrets["api_keys"]["pinecone"]  # Set your Pinecone API key
 PINECONE_ENV = "us-west1-gcp"  # Change this based on your Pinecone environment
 
 pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
