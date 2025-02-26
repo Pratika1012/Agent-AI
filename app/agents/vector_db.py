@@ -4,8 +4,9 @@ import pinecone
 from pinecone import Pinecone
 from pinecone import ServerlessSpec
 import streamlit as st
-from langchain.vectorstores import Pinecone
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Pinecone as LangchainPinecone
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
 
 # ✅ Load secrets from Streamlit's secrets management
 secrets = st.secrets
@@ -18,12 +19,15 @@ INDEX_NAME = secrets["pinecone_config"]["index_name"]
 # ✅ Initialize Pinecone
 pc = pinecone.Pinecone(api_key=PINECONE_API_KEY)
 
-spec = ServerlessSpec(cloud="aws", region="us-east-1") 
-# ✅ Check if the index exists, else create one
-if INDEX_NAME not in pc.list_indexes():
+# ✅ Check if the index already exists before creating
+existing_indexes = [idx["name"] for idx in pc.list_indexes()]
+if INDEX_NAME not in existing_indexes:
+    spec = ServerlessSpec(cloud="aws", region="us-east-1")  # Change region if needed
     pc.create_index(name=INDEX_NAME, dimension=384, metric="cosine", spec=spec)
 
+# ✅ Connect to existing index
 index = pc.Index(INDEX_NAME)
+
  # 384 is the embedding size for MiniLM
 
 # ✅ Connect to Pinecone index
