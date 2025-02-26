@@ -2,6 +2,7 @@ import os
 import pinecone
 from langchain_community.vectorstores import Pinecone as LangchainPinecone
 from langchain_community.embeddings import HuggingFaceEmbeddings
+import streamlit as st
 
 class VectorDB:
     def __init__(self, index_name: str, persist_directory=None):
