@@ -48,7 +48,9 @@ class VectorDB:
         Initialize Pinecone vector storage with Hugging Face embeddings.
         """
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-        self.db = Pinecone(index, self.embed_model, namespace="default")
+        self.db = LangchainPinecone.from_existing_index(index_name=INDEX_NAME, embedding=self.embed_model)
+
+
 
     def store_interaction(self, query, response):
         """
