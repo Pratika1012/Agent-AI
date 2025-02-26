@@ -6,11 +6,12 @@ from langchain.embeddings import HuggingFaceEmbeddings
 
 # ✅ Get Pinecone API Key from Streamlit secrets or environment
 PINECONE_API_KEY = st.secrets["api_keys"]["pinecone"]
-PINECONE_ENV = "us-east-1" 
+PINECONE_ENV = "us-east-1"  # ✅ Define environment properly
+
 INDEX_NAME = "ai-memory"
 
-# ✅ Initialize Pinecone
-pinecone.init(api_key=PINECONE_API_KEY,environment=PINECONE_ENV)
+# ✅ Corrected Pinecone Initialization
+pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)  # ✅ Corrected Syntax
 
 class VectorDB:
     def __init__(self):
@@ -25,7 +26,7 @@ class VectorDB:
         self.index = pinecone.Index(INDEX_NAME)
 
         # ✅ Use PineconeVectorStore
-        self.db = PineconeVectorStore(self.index, self.embed_model.embed_query, "text")
+        self.db = PineconeVectorStore.from_existing_index(INDEX_NAME, self.embed_model)
 
     def store_interaction(self, query, response):
         """ Store query and response in Pinecone """
