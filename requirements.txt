@@ -1,0 +1,14 @@
+streamlit
+requests
+concurrent.futures
+langchain
+chromadb
+huggingface-hub
+transformers
+torch
+pydantic
+numpy
+tiktoken
+openai
+anthropic
+pandas
