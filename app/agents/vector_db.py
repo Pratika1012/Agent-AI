@@ -1,3 +1,4 @@
+import streamlit as st
 import os
 import pinecone
 from langchain_community.vectorstores import Pinecone as LangchainPinecone
