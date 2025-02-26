@@ -1,25 +1,22 @@
 import os
 import streamlit as st
-import pinecone
+from pinecone import Pinecone, ServerlessSpec  # ✅ Correct Import
 from langchain_community.vectorstores import Pinecone as PineconeVectorStore
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
-# ✅ Debugging: Check if API Key is Retrieved
+# ✅ Load API Key from Streamlit Secrets or Environment Variable
 PINECONE_API_KEY = st.secrets.get("api_keys", {}).get("pinecone", None)
-
-# ✅ If Streamlit Secrets fail, use Environment Variable as Backup
 if not PINECONE_API_KEY:
     PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 
-# ✅ Debugging Output (Only show first 5 characters for security)
-if PINECONE_API_KEY:
-    st.write(f"✅ Pinecone API Key Loaded: {PINECONE_API_KEY[:5]}...")
-else:
-    st.error("❌ Pinecone API Key is missing! Check Streamlit secrets or set it as an environment variable.")
-    raise ValueError("Pinecone API Key Not Found!")
+if not PINECONE_API_KEY:
+    st.error("❌ Pinecone API Key is missing! Check Streamlit secrets or environment variables.")
+    raise ValueError("Pinecone API Key Not Found! Ensure it is set in Streamlit secrets or as an environment variable.")
 
-# ✅ Initialize Pinecone Properly
-pinecone.init(api_key=PINECONE_API_KEY, environment="us-east-1")
+st.write(f"✅ Pinecone API Key Loaded: {PINECONE_API_KEY[:5]}...")  # ✅ Debugging Output
+
+# ✅ Correct Pinecone Client Initialization (Fixed)
+pc = Pinecone(api_key=PINECONE_API_KEY)  # ✅ Use Pinecone Class Instead of init()
 
 INDEX_NAME = "ai-memory"
 
@@ -29,19 +26,19 @@ class VectorDB:
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         # ✅ Ensure the index exists
-        existing_indexes = pinecone.list_indexes()
-        st.write(f"📌 Available Pinecone Indexes: {existing_indexes}")  # ✅ Debugging Index List
+        existing_indexes = pc.list_indexes().names()  # ✅ Fix: Use .names()
+        st.write(f"📌 Available Pinecone Indexes: {existing_indexes}")  # ✅ Debugging Output
 
         if INDEX_NAME not in existing_indexes:
-            pinecone.create_index(
+            pc.create_index(
                 name=INDEX_NAME,
                 dimension=384,
                 metric="cosine",
-                spec=pinecone.ServerlessSpec(cloud="aws", region="us-east-1")  # ✅ Required for Pinecone v3
+                spec=ServerlessSpec(cloud="aws", region="us-east-1")  # ✅ Required for Pinecone v3
             )
 
         # ✅ Connect to the index
-        self.index = pinecone.Index(INDEX_NAME)
+        self.index = pc.Index(INDEX_NAME)
 
         # ✅ Use PineconeVectorStore Correctly
         self.db = PineconeVectorStore.from_existing_index(INDEX_NAME, self.embed_model)
