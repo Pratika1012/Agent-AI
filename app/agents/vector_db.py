@@ -22,13 +22,17 @@ class VectorDB:
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         # ✅ Ensure Pinecone Index exists
+        # ✅ Ensure Pinecone Index Exists Before Connecting
         existing_indexes = [index_info["name"] for index_info in pinecone_client.list_indexes()]
-        if INDEX_NAME not in existing_indexes:
-            pinecone_client.create_index(name=INDEX_NAME, dimension=384, metric="cosine")
-
+            
+        if index_name not in existing_indexes:
+                pinecone_client.create_index(name=index_name, dimension=384, metric="cosine")
+            
+            # ✅ Now Connect to Pinecone Index
+        self.index = pinecone_client.Index(index_name)
+            
 
         # ✅ Connect to Pinecone Index
-        self.index = pinecone_client.Index(index_name)
 
 
         # ✅ Initialize LangChain Pinecone VectorStore
