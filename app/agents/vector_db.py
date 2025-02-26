@@ -1,7 +1,7 @@
 import os
 import chromadb
 from langchain.vectorstores import Chroma
-from langchain.embeddings import HuggingFaceEmbeddings  # ✅ No API key required
+from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.schema import Document
 
 class VectorDB:
