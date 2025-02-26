@@ -2,7 +2,6 @@ import os
 import pinecone
 from langchain_community.vectorstores import Pinecone as LangchainPinecone
 from langchain_community.embeddings import HuggingFaceEmbeddings
-import streamlit as st
 
 class VectorDB:
     def __init__(self, index_name: str, persist_directory=None):
@@ -53,9 +52,7 @@ class VectorDB:
         # ✅ Initialize Langchain Pinecone wrapper
         self.db = LangchainPinecone.from_existing_index(
             index_name=self.index_name,
-            embedding=self.embed_model,
-            pinecone_api_key=self.api_key,
-            environment=self.environment
+            embedding=self.embed_model
         )
 
     def store_interaction(self, query: str, response: str):
