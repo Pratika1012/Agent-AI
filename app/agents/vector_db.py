@@ -20,8 +20,8 @@ if not PINECONE_API_KEY:
 st.write(f"✅ Pinecone API Key Loaded: {PINECONE_API_KEY[:5]}...")
 st.write(f"✅ Pinecone Version: {pinecone.__version__}")
 
-# ✅ Correct Pinecone Client Initialization
-pc = Pinecone(api_key=PINECONE_API_KEY)
+# ✅ Correct Pinecone Client Initialization (GLOBAL INIT - DO NOT PLACE INSIDE A CLASS)
+pinecone.init(api_key=PINECONE_API_KEY, environment="us-east-1")
 
 INDEX_NAME = "ai-memory"
 
@@ -31,12 +31,12 @@ class VectorDB:
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         # ✅ Ensure the index exists
-        existing_indexes = [index["name"] for index in pc.list_indexes()]
+        existing_indexes = pinecone.list_indexes()
         st.write(f"📌 Available Pinecone Indexes: {existing_indexes}")
 
         if INDEX_NAME not in existing_indexes:
             st.warning(f"🛑 Index '{INDEX_NAME}' not found. Creating a new one...")
-            pc.create_index(
+            pinecone.create_index(
                 name=INDEX_NAME,
                 dimension=384,
                 metric="cosine",
@@ -45,16 +45,14 @@ class VectorDB:
             st.success(f"✅ Index '{INDEX_NAME}' created successfully!")
 
         # ✅ Connect to the index manually
-        self.index = pc.Index(INDEX_NAME)
+        self.index = pinecone.Index(INDEX_NAME)
         st.success(f"✅ Successfully connected to index '{INDEX_NAME}'!")
 
-        # 🔥 FIX: Explicitly pass Pinecone Client and API Key to LangChain
+        # 🔥 FIX: Corrected PineconeVectorStore Initialization
         try:
-            self.db = PineconeVectorStore.from_existing_index(
-                index_name=INDEX_NAME,
+            self.db = PineconeVectorStore(
+                index=self.index,  # ✅ Pass Pinecone Index Instead of API Key
                 embedding=self.embed_model,
-                api_key=PINECONE_API_KEY,  # ✅ FIX: Pass API Key Explicitly
-                environment="us-east-1",  # ✅ FIX: Pass Environment Explicitly
                 text_key="text",
                 namespace=""
             )
