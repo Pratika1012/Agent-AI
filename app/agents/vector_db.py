@@ -11,7 +11,8 @@ PINECONE_API_KEY = st.secrets["api_keys"]["pinecone"]  # Set your Pinecone API k
 PINECONE_ENV = "us-east-1"  # Change this based on your Pinecone environment
 INDEX_NAME = "ai-memory"
 
-pc = Pinecone(api_key=PINECONE_API_KEY)
+pc = Pinecone(api_key=st.secrets["api_keys"]["pinecone"])
+
 
        
 
@@ -29,7 +30,7 @@ class VectorDB:
             pinecone_client.create_index(name=index_name, dimension=384, metric="cosine")
 
         # ✅ Now Connect to Pinecone Index
-        self.index = pc.Index(index_name)
+        index = pc.Index(INDEX_NAME)
 
 
         # ✅ Initialize LangChain Pinecone VectorStore
