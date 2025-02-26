@@ -7,7 +7,7 @@ from langchain.schema import Document
 from langchain.docstore.document import Document as LangchainDocument
 
 # ✅ Initialize Pinecone
-PINECONE_API_KEY = st.secrets["api_keys"]["pinecone"]  # Set your Pinecone API key
+  # Set your Pinecone API key
 PINECONE_ENV = "us-east-1"  # Change this based on your Pinecone environment
 INDEX_NAME = "ai-memory"
 
