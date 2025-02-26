@@ -22,12 +22,12 @@ class LLMOrchestrator:
         self.logger = setup_logger()
 
         # ✅ Load Configuration
-        with open(CONFIG_PATH, "r") as f:
-            self.config = json.load(f)
+        # with open(CONFIG_PATH, "r") as f:
+        #     self.config = json.load(f)
 
-        self.api_keys = self.config["api_keys"]
-        self.models = self.config["models"]
-        self.generation_config = self.config["generation_config"]
+        self.api_keys = st.secrets["api_keys"]
+        self.models = st.secrets["models"]
+        self.generation_config = st.secrets["generation_config"]
         self.fallback_models = ["claude-2", "mixtral-8x7b-32768"]
 
         # ✅ Initialize ChromaDB for memory storage (Hugging Face embeddings)
@@ -49,7 +49,7 @@ class LLMOrchestrator:
         retries = 2  # Maximum retry attempts
         for attempt in range(retries + 1):
             start_time = time.time()
-            api_key = self.api_keys["groq"] if "claude" not in model_name else self.api_keys["anthropic"]
+            api_key = st.secrets["api_keys"]["groq"] if "claude" not in model_name else st.secrets["api_keys"]["anthropic"]
 
             headers = {
                 "Authorization": f"Bearer {api_key}",

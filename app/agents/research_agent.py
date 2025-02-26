@@ -192,6 +192,7 @@
 import os
 import json
 import time
+import streamlit as st
 import requests
 import re  # For extracting category from response
 from langchain.prompts import PromptTemplate
@@ -212,12 +213,16 @@ class ResearchAgent:
         """Initialize Research Agent with Groq API for structured research-based LLM calls."""
         self.logger = setup_logger()
 
-        with open(CONFIG_PATH, "r") as f:
-            self.config = json.load(f)
+        # with open(CONFIG_PATH, "r") as f:
+        #     self.config = json.load(f)
 
-        self.api_key = self.config["api_keys"]["groq"]  # ✅ Use Groq API Key
-        self.model_name = "mixtral-8x7b-32768"  # ✅ Default Model
+        self.api_key = st.secrets["api_keys"]["groq"]
+        self.default_model = st.secrets["models"]["default"]
         self.base_url = "https://api.groq.com/openai/v1/chat/completions"
+
+        model_config = st.secrets["generation_config"].get(self.default_model, {})
+        self.temperature = model_config.get("temperature", 0.1)
+        self.max_tokens = model_config.get("max_tokens", 2048)
 
         # ✅ Define Prompt Templates
         self.chain_of_thought_template = PromptTemplate(
