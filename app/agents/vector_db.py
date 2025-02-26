@@ -1,12 +1,9 @@
 import os
-import toml
-import pinecone
-from pinecone import Pinecone
-from pinecone import ServerlessSpec
-from langchain_community.vectorstores import Pinecone as LangchainPinecone
-from langchain_community.embeddings import HuggingFaceEmbeddings
 import streamlit as st
 import asyncio
+from pinecone import Pinecone, ServerlessSpec
+from langchain_community.vectorstores import Pinecone as LangchainPinecone
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 # ✅ Ensure an event loop exists
 try:
@@ -14,33 +11,30 @@ try:
 except RuntimeError:
     asyncio.set_event_loop(asyncio.new_event_loop())
 
-
-
-# ✅ Load secrets from Streamlit's secrets management
+# ✅ Load secrets from Streamlit Secrets Management & Ensure API key is set
 secrets = st.secrets
-
-# ✅ Retrieve API keys and Pinecone configuration
-PINECONE_API_KEY = secrets["api_keys"]["pinecone"]
+PINECONE_API_KEY = secrets["api_keys"].get("pinecone", os.getenv("PINECONE_API_KEY"))
 PINECONE_ENV = secrets["pinecone_config"]["environment"]
 INDEX_NAME = secrets["pinecone_config"]["index_name"]
+
+# ✅ Ensure API key is available before initializing Pinecone
+if not PINECONE_API_KEY:
+    raise ValueError("❌ Pinecone API Key is missing! Set it in Streamlit secrets or environment variables.")
+
+# ✅ Set API key in environment
+os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
 
 # ✅ Initialize Pinecone
 pc = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
 
-
-# ✅ Check if the index already exists before creating
+# ✅ Check if the index exists before creating
 existing_indexes = [idx["name"] for idx in pc.list_indexes()]
 if INDEX_NAME not in existing_indexes:
     spec = ServerlessSpec(cloud="aws", region="us-east-1")  # Change region if needed
     pc.create_index(name=INDEX_NAME, dimension=384, metric="cosine", spec=spec)
 
-# ✅ Connect to existing index
+# ✅ Connect to the Pinecone index
 index = pc.Index(INDEX_NAME)
-
- # 384 is the embedding size for MiniLM
-
-# ✅ Connect to Pinecone index
-
 
 class VectorDB:
     def __init__(self):
@@ -48,9 +42,13 @@ class VectorDB:
         Initialize Pinecone vector storage with Hugging Face embeddings.
         """
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-        self.db = LangchainPinecone.from_existing_index(index_name=INDEX_NAME, embedding=self.embed_model)
 
-
+        # ✅ Fix: Explicitly pass API key to Pinecone
+        self.db = LangchainPinecone.from_existing_index(
+            index_name=INDEX_NAME, 
+            embedding=self.embed_model, 
+            api_key=PINECONE_API_KEY
+        )
 
     def store_interaction(self, query, response):
         """
@@ -65,7 +63,11 @@ class VectorDB:
         """
         embedding = self.embed_model.embed_query(query)
         results = index.query(vector=embedding, top_k=k, include_metadata=True)
-        return [match["metadata"]["response"] for match in results["matches"]]
+        
+        if results.get("matches"):
+            return [match["metadata"]["response"] for match in results["matches"]]
+        else:
+            return ["No similar responses found."]
 
     def clear_memory(self):
         """
@@ -73,4 +75,3 @@ class VectorDB:
         """
         index.delete(delete_all=True)
 
-# ✅ Streamlit UI
