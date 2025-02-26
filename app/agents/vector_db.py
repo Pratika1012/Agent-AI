@@ -1,14 +1,17 @@
 import os
 import streamlit as st
-from pinecone import Pinecone, ServerlessSpec  # ✅ Correct Import
+from pinecone import Pinecone, ServerlessSpec  # ✅ Correct Pinecone import
 from langchain_community.vectorstores import Pinecone as PineconeVectorStore
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
-# ✅ Load API Key from Streamlit Secrets or Environment Variable
+# ✅ Load Pinecone API Key
 PINECONE_API_KEY = st.secrets.get("api_keys", {}).get("pinecone", None)
+
+# ✅ Fallback to Environment Variable (For Streamlit Deployment)
 if not PINECONE_API_KEY:
     PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 
+# ✅ Ensure API Key is Present
 if not PINECONE_API_KEY:
     st.error("❌ Pinecone API Key is missing! Check Streamlit secrets or environment variables.")
     raise ValueError("Pinecone API Key Not Found! Ensure it is set in Streamlit secrets or as an environment variable.")
@@ -16,7 +19,7 @@ if not PINECONE_API_KEY:
 st.write(f"✅ Pinecone API Key Loaded: {PINECONE_API_KEY[:5]}...")  # ✅ Debugging Output
 
 # ✅ Correct Pinecone Client Initialization (Fixed)
-pc = Pinecone(api_key=PINECONE_API_KEY)  # ✅ Use Pinecone Class Instead of init()
+pc = Pinecone(api_key=PINECONE_API_KEY)
 
 INDEX_NAME = "ai-memory"
 
@@ -26,7 +29,7 @@ class VectorDB:
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         # ✅ Ensure the index exists
-        existing_indexes = pc.list_indexes().names()  # ✅ Fix: Use .names()
+        existing_indexes = pc.list_indexes().names()  # ✅ Fix: Use .names() correctly
         st.write(f"📌 Available Pinecone Indexes: {existing_indexes}")  # ✅ Debugging Output
 
         if INDEX_NAME not in existing_indexes:
