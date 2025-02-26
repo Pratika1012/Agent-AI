@@ -1,9 +1,13 @@
 import os
 import streamlit as st
 import asyncio
+import logging
 from pinecone import Pinecone, ServerlessSpec
 from langchain_community.vectorstores import Pinecone as LangchainPinecone
 from langchain_community.embeddings import HuggingFaceEmbeddings
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
 
 # ✅ Ensure an event loop exists
 try:
@@ -43,13 +47,16 @@ class VectorDB:
         """
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-        # ✅ Fix: Explicitly pass API key and namespace to Pinecone
-        self.db = LangchainPinecone.from_existing_index(
-            index_name=INDEX_NAME,
-            embedding=self.embed_model,
-            pinecone_api_key=PINECONE_API_KEY,  # ✅ Ensure API key is explicitly passed
-            namespace="default"  # ✅ Add a default namespace
-        )
+        try:
+            self.db = LangchainPinecone.from_existing_index(
+                index_name=INDEX_NAME, 
+                embedding=self.embed_model, 
+                pinecone_api_key=PINECONE_API_KEY,
+                environment=PINECONE_ENV
+            )
+        except Exception as e:
+            logging.error(f"Error initializing Pinecone: {e}")
+            raise
 
     def store_interaction(self, query, response):
         """
@@ -75,4 +82,3 @@ class VectorDB:
         Clears all stored interactions in Pinecone.
         """
         index.delete(delete_all=True)
-
