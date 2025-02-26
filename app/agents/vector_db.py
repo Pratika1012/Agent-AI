@@ -14,14 +14,18 @@ PINECONE_ENV = secrets["pinecone_config"]["environment"]
 INDEX_NAME = secrets["pinecone_config"]["index_name"]
 
 # ✅ Initialize Pinecone
-pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
+pc = pinecone.Pinecone(api_key=PINECONE_API_KEY)
+
 
 # ✅ Check if the index exists, else create one
-if INDEX_NAME not in pinecone.list_indexes():
-    pinecone.create_index(INDEX_NAME, dimension=384)  # 384 is the embedding size for MiniLM
+if INDEX_NAME not in pc.list_indexes():
+    pc.create_index(name=INDEX_NAME, dimension=384, metric="cosine")
+
+index = pc.Index(INDEX_NAME)
+ # 384 is the embedding size for MiniLM
 
 # ✅ Connect to Pinecone index
-index = pinecone.Index(INDEX_NAME)
+
 
 class VectorDB:
     def __init__(self):
