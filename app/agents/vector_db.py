@@ -5,8 +5,8 @@ from pinecone import Pinecone, ServerlessSpec
 from langchain_community.vectorstores import Pinecone as PineconeVectorStore
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
-# ✅ Load API Key Correctly (Fixed!)
-PINECONE_API_KEY = st.secrets.get("pinecone_api_key", None)  # ✅ Now matches `secrets.toml`
+# ✅ Load Pinecone API Key Correctly
+PINECONE_API_KEY = st.secrets.get("pinecone_api_key", None)
 
 # ✅ Fallback to Environment Variable
 if not PINECONE_API_KEY:
@@ -18,7 +18,7 @@ if not PINECONE_API_KEY:
 
 # ✅ Debugging
 st.write(f"✅ Pinecone API Key Loaded: {PINECONE_API_KEY[:5]}...")
-st.write(f"✅ Pinecone Version: {pinecone.__version__}")  
+st.write(f"✅ Pinecone Version: {pinecone.__version__}")
 
 # ✅ Correct Pinecone Client Initialization
 pc = Pinecone(api_key=PINECONE_API_KEY)
@@ -44,25 +44,22 @@ class VectorDB:
             )
             st.success(f"✅ Index '{INDEX_NAME}' created successfully!")
 
-        # ✅ Connect to the index
+        # ✅ Connect to the index manually
         self.index = pc.Index(INDEX_NAME)
         st.success(f"✅ Successfully connected to index '{INDEX_NAME}'!")
 
-        # 🔥 FIX: Manually fetch the Pinecone index before passing to LangChain
+        # 🔥 FIX: Explicitly pass Pinecone Client and API Key to LangChain
         try:
-            pinecone_index = pc.Index(INDEX_NAME)
-            st.success(f"✅ Pinecone Index '{INDEX_NAME}' Fetched Successfully!")
-
-            # ✅ Use PineconeVectorStore Correctly
-            self.db = PineconeVectorStore(
+            self.db = PineconeVectorStore.from_existing_index(
                 index_name=INDEX_NAME,
                 embedding=self.embed_model,
-                pinecone_api_key=PINECONE_API_KEY,  # ✅ API Key now matches `secrets.toml`
+                api_key=PINECONE_API_KEY,  # ✅ FIX: Pass API Key Explicitly
+                environment="us-east-1",  # ✅ FIX: Pass Environment Explicitly
                 text_key="text",
                 namespace=""
             )
             st.success("✅ Pinecone Vector Store Initialized Successfully!")
-        
+
         except Exception as e:
             st.error(f"❌ Error Initializing Pinecone Vector Store: {str(e)}")
             raise e
