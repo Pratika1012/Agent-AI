@@ -1,6 +1,8 @@
 import os
 import toml
 import pinecone
+from pinecone import Pinecone
+
 import streamlit as st
 from langchain.vectorstores import Pinecone
 from langchain.embeddings import HuggingFaceEmbeddings
