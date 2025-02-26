@@ -4,11 +4,16 @@ from pinecone import Pinecone, ServerlessSpec
 from langchain.vectorstores import Pinecone as PineconeVectorStore
 from langchain.embeddings import HuggingFaceEmbeddings  
 
-# ✅ Get Pinecone API Key
-PINECONE_API_KEY = st.secrets["api_keys"]["pinecone"]
+# ✅ Ensure Pinecone API Key is Loaded
+try:
+    PINECONE_API_KEY = st.secrets["api_keys"]["pinecone"]
+except KeyError:
+    st.error("❌ Pinecone API key is missing in Streamlit secrets. Check secrets.toml!")
+    raise ValueError("Pinecone API key not found!")
+
 INDEX_NAME = "ai-memory"
 
-# ✅ Initialize Pinecone Client
+# ✅ Initialize Pinecone Client (Remove pinecone.init)
 pc = Pinecone(api_key=PINECONE_API_KEY)
 
 class VectorDB:
@@ -17,7 +22,7 @@ class VectorDB:
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         # ✅ Ensure the index exists
-        if INDEX_NAME not in pc.list_indexes().names():
+        if INDEX_NAME not in pc.list_indexes().names():  # ✅ Fix: Use .names()
             pc.create_index(
                 name=INDEX_NAME,
                 dimension=384,
