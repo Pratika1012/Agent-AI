@@ -44,7 +44,7 @@ class VectorDB:
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         # ✅ Fix: Explicitly pass API key to Pinecone
-       self.db = LangchainPinecone.from_existing_index(
+        self.db = LangchainPinecone.from_existing_index(
         index_name=INDEX_NAME, 
         embedding=self.embed_model, 
         pinecone_api_key=PINECONE_API_KEY,  # ✅ Explicitly pass API key
