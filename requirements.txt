@@ -12,3 +12,4 @@ rich
 markdown-it-py
 mdurl
 pygments
+langchain_community
