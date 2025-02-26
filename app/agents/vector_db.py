@@ -6,7 +6,11 @@ from langchain.embeddings import HuggingFaceEmbeddings
 
 # ✅ Ensure Pinecone API Key is Loaded
 try:
-    PINECONE_API_KEY = st.secrets["api_keys"]["pinecone"]
+    PINECONE_API_KEY = st.secrets["api_keys"].get("pinecone", None)
+
+if not PINECONE_API_KEY:
+    raise ValueError("❌ Pinecone API Key Not Found! Check Streamlit secrets.")
+
 except KeyError:
     st.error("❌ Pinecone API key is missing in Streamlit secrets. Check secrets.toml!")
     raise ValueError("Pinecone API key not found!")
