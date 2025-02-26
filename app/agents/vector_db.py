@@ -5,8 +5,10 @@ from pinecone import Pinecone, ServerlessSpec
 from langchain_community.vectorstores import Pinecone as PineconeVectorStore
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
-# ✅ Load Pinecone API Key
+# ✅ Load API Key Safely
 PINECONE_API_KEY = st.secrets.get("api_keys", {}).get("pinecone", None)
+
+# ✅ Fallback to Environment Variable
 if not PINECONE_API_KEY:
     PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 
@@ -15,7 +17,7 @@ if not PINECONE_API_KEY:
     raise ValueError("Pinecone API Key Not Found!")
 
 # ✅ Debugging
-st.write(f"✅ Pinecone API Key Loaded: {PINECONE_API_KEY[:5]}...")  
+st.write(f"✅ Pinecone API Key Loaded: {PINECONE_API_KEY[:5]}...")
 st.write(f"✅ Pinecone Version: {pinecone.__version__}")  
 
 # ✅ Correct Pinecone Client Initialization
@@ -29,7 +31,7 @@ class VectorDB:
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         # ✅ Ensure the index exists
-        existing_indexes = pc.list_indexes().names()
+        existing_indexes = [index["name"] for index in pc.list_indexes()]
         st.write(f"📌 Available Pinecone Indexes: {existing_indexes}")
 
         if INDEX_NAME not in existing_indexes:
@@ -46,12 +48,17 @@ class VectorDB:
         self.index = pc.Index(INDEX_NAME)
         st.success(f"✅ Successfully connected to index '{INDEX_NAME}'!")
 
-        # 🔥 FIX: Explicitly Pass Pinecone Client to LangChain
-        self.db = PineconeVectorStore.from_existing_index(
-            index_name=INDEX_NAME,
-            embedding=self.embed_model,
-            pinecone_client=pc  # ✅ FIX: Explicitly Pass Pinecone Client
-        )
+        # 🔥 FIX: Use Correct LangChain Pinecone Vector Store Initialization
+        try:
+            self.db = PineconeVectorStore(
+                index_name=INDEX_NAME,
+                embedding=self.embed_model,
+                pinecone_api_key=PINECONE_API_KEY  # ✅ FIX: Explicitly Pass API Key
+            )
+            st.success("✅ Pinecone Vector Store Initialized Successfully!")
+        except Exception as e:
+            st.error(f"❌ Error Initializing Pinecone Vector Store: {str(e)}")
+            raise e
 
     def store_interaction(self, query, response):
         """ Store query and response in Pinecone """
