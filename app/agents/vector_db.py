@@ -7,6 +7,7 @@ from langchain.schema import Document
 
 
 
+
 class VectorDB:
     def __init__(self, index_name: str, persist_directory=None):
         """
