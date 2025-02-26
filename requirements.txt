@@ -15,4 +15,7 @@ langchain_community
 chromadb==0.6.3 # Use the latest stable version of ChromaDB
 sentence-transformers
 pysqlite3-binary
+torch
+transformers
+
 
