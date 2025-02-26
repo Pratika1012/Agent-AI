@@ -27,7 +27,8 @@ class VectorDB:
             pinecone_client.create_index(name=index_name, dimension=384, metric="cosine")
 
         # ✅ Now Connect to Pinecone Index
-        self.index = pinecone_client.Index(index_name)
+        self.index = pinecone.Index(index_name)
+
 
         # ✅ Initialize LangChain Pinecone VectorStore
         self.db = Pinecone(self.index, self.embed_model.embed_query, "text")
