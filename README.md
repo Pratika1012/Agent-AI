@@ -24,10 +24,11 @@ This project implements an AI-powered research agent designed to retrieve, analy
    git add .
    git commit -m "Added feature XYZ"
 4.**Push Changes to GitHub**
-
+   ```bash
    git push origin feature-branch
-5.**Merge Changes to Main Branch**
 
+5.**Merge Changes to Main Branch**
+      ```bash
    git checkout main
    git merge feature-branch
    git push origin main
