@@ -1,20 +1,19 @@
 import os
 import streamlit as st
-from pinecone import Pinecone
-from langchain.vectorstores import Pinecone
+import pinecone  # ✅ Correct import
+from pinecone import Index
+from langchain.vectorstores import Pinecone as PineconeVectorStore
 from langchain.embeddings import HuggingFaceEmbeddings  # ✅ No API key required
 from langchain.schema import Document
 from langchain.docstore.document import Document as LangchainDocument
 
 # ✅ Initialize Pinecone
-  # Set your Pinecone API key
+PINECONE_API_KEY = st.secrets["api_keys"]["pinecone"]  # Set your Pinecone API key
 PINECONE_ENV = "us-east-1"  # Change this based on your Pinecone environment
 INDEX_NAME = "ai-memory"
 
-pc = Pinecone(api_key=st.secrets["api_keys"]["pinecone"])
-
-
-       
+# ✅ Initialize Pinecone Correctly
+pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENV)
 
 class VectorDB:
     def __init__(self, index_name="ai-memory"):
@@ -24,17 +23,16 @@ class VectorDB:
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         # ✅ Ensure Pinecone Index Exists Before Connecting
-        existing_indexes = [index_info["name"] for index_info in pinecone_client.list_indexes()]
-        
+        existing_indexes = pinecone.list_indexes()
+
         if index_name not in existing_indexes:
-            pinecone_client.create_index(name=index_name, dimension=384, metric="cosine")
+            pinecone.create_index(name=index_name, dimension=384, metric="cosine")
 
         # ✅ Now Connect to Pinecone Index
-        index = pc.Index(INDEX_NAME)
-
+        self.index = Index(INDEX_NAME)  # ✅ Correct way to initialize Pinecone Index
 
         # ✅ Initialize LangChain Pinecone VectorStore
-        self.db = Pinecone(self.index, self.embed_model.embed_query, "text")
+        self.db = PineconeVectorStore(self.index, self.embed_model.embed_query, "text")
 
     def store_interaction(self, query, response):
         """
