@@ -1,3 +1,5 @@
+
+
 import streamlit as st
 from agents.llm_orchestration import LLMOrchestrator
 from agents.research_agent import ResearchAgent
@@ -5,14 +7,6 @@ from Utils.token_counter import count_tokens
 import os
 import logging
 from Utils.logger import setup_logger
-import asyncio
-
-try:
-    asyncio.get_running_loop()
-except RuntimeError:
-    asyncio.set_event_loop(asyncio.new_event_loop())
-
-st.write(st.secrets)
 
 # ✅ Correct config path
 CONFIG_PATH = r"C:\Users\HP\Desktop\Agent-AI\config\Configration.json"
