@@ -22,15 +22,25 @@ class VectorDB:
         self.environment = os.getenv("PINECONE_ENV") or st.secrets["pinecone_config"]["environment"]
         self.index_name = index_name
 
+        # ✅ Debug: Print API key and environment
+        print(f"Pinecone API Key: {self.api_key}")
+        print(f"Pinecone Environment: {self.environment}")
+
         # ✅ Ensure API key is available
         if not self.api_key:
             raise ValueError("❌ Pinecone API Key is missing! Set it in environment variables or Streamlit secrets.")
 
         # ✅ Initialize Pinecone client
-        pinecone.init(api_key=self.api_key, environment=self.environment)
+        try:
+            pinecone.init(api_key=self.api_key, environment=self.environment)
+            print("Pinecone initialized successfully!")
+        except Exception as e:
+            print(f"Error initializing Pinecone: {e}")
+            raise
 
         # ✅ Check if the index exists, create it if it doesn't
         if self.index_name not in pinecone.list_indexes():
+            print(f"Creating new Pinecone index: {self.index_name}")
             pinecone.create_index(
                 name=self.index_name,
                 dimension=384,  # Match the dimension of the embedding model
@@ -69,6 +79,7 @@ class VectorDB:
                 }
             ]
         )
+        print(f"Stored interaction: {query} -> {response}")
 
     def retrieve_similar(self, query: str, k: int = 2) -> list:
         """
@@ -93,8 +104,10 @@ class VectorDB:
 
         # Extract responses from metadata
         if results.get("matches"):
+            print(f"Retrieved similar interactions: {results['matches']}")
             return [match["metadata"]["response"] for match in results["matches"]]
         else:
+            print("No similar interactions found.")
             return []
 
     def clear_memory(self):
@@ -103,3 +116,4 @@ class VectorDB:
         """
         # Delete all vectors in the index
         self.index.delete(delete_all=True)
+        print("Cleared all interactions from Pinecone index.")
