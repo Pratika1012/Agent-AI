@@ -13,3 +13,7 @@ mdurl
 pygments
 langchain_community
 chromadb==0.6.3  # Use the latest stable version of ChromaDB
+duckdb
+uvicorn
+fastapi
+pysqlite3-binary
