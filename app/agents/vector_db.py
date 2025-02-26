@@ -1,17 +1,16 @@
-import streamlit as st
 import os
 import pinecone
 from langchain_community.vectorstores import Pinecone as LangchainPinecone
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain.schema import Document
-
-
-
 
 class VectorDB:
     def __init__(self, index_name: str, persist_directory=None):
         """
         Initialize Pinecone vector storage with Hugging Face embeddings.
+
+        Args:
+            index_name (str): Name of the Pinecone index.
+            persist_directory (str, optional): Not used for Pinecone. Included for compatibility.
         """
         # ✅ Load Hugging Face sentence-transformer model
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
@@ -31,23 +30,24 @@ class VectorDB:
 
         # ✅ Initialize Pinecone client
         try:
-            pinecone.init(api_key=self.api_key, environment=self.environment)
+            self.pc = pinecone.Pinecone(api_key=self.api_key)
             print("Pinecone initialized successfully!")
         except Exception as e:
             print(f"Error initializing Pinecone: {e}")
             raise
 
         # ✅ Check if the index exists, create it if it doesn't
-        if self.index_name not in pinecone.list_indexes():
+        if self.index_name not in self.pc.list_indexes().names():
             print(f"Creating new Pinecone index: {self.index_name}")
-            pinecone.create_index(
+            self.pc.create_index(
                 name=self.index_name,
                 dimension=384,  # Match the dimension of the embedding model
-                metric="cosine"
+                metric="cosine",
+                spec=pinecone.ServerlessSpec(cloud="aws", region=self.environment)
             )
 
         # ✅ Connect to the Pinecone index
-        self.index = pinecone.Index(self.index_name)
+        self.index = self.pc.Index(self.index_name)
 
         # ✅ Initialize Langchain Pinecone wrapper
         self.db = LangchainPinecone.from_existing_index(
@@ -56,6 +56,7 @@ class VectorDB:
             pinecone_api_key=self.api_key,
             environment=self.environment
         )
+
     def store_interaction(self, query: str, response: str):
         """
         Stores user queries and responses in Pinecone.
