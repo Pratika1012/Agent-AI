@@ -33,8 +33,8 @@ logger = setup_logger()
 logger.info("✅ Logger setup completed successfully.")
 
 # ✅ Initialize LLM Orchestrator and Research Agent
-orchestrator = LLMOrchestrator(config=st.secrets)
-research_agent = ResearchAgent(config=st.secrets)
+orchestrator = LLMOrchestrator()
+research_agent = ResearchAgent()
 
 
 # ✅ Streamlit UI
