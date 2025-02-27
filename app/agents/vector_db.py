@@ -1,7 +1,7 @@
 import os
-import pinecone
 import streamlit as st
-from langchain.vectorstores import Pinecone
+from pinecone import Pinecone, ServerlessSpec
+from langchain.vectorstores import Pinecone as PineconeStore
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.schema import Document
 
@@ -19,15 +19,21 @@ class VectorDB:
         # ✅ Load Hugging Face sentence-transformer model
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-        # ✅ Initialize Pinecone
-        pinecone.init(api_key=api_key, environment=environment)
+        # ✅ Initialize Pinecone instance (New Method)
+        self.pc = Pinecone(api_key=api_key)
 
-        # ✅ Create or connect to the Pinecone index
-        if index_name not in pinecone.list_indexes():
-            pinecone.create_index(index_name, dimension=384, metric="cosine")
+        # ✅ Check if the index exists, else create it
+        if index_name not in self.pc.list_indexes().names():
+            self.pc.create_index(
+                name=index_name,
+                dimension=384,  # Ensure this matches your embedding model's output dimensions
+                metric="cosine",
+                spec=ServerlessSpec(cloud="aws", region=environment)
+            )
 
-        self.index = pinecone.Index(index_name)
-        self.db = Pinecone(self.index, self.embed_model)
+        # ✅ Connect to the Pinecone index
+        self.index = self.pc.Index(index_name)
+        self.db = PineconeStore(self.index, self.embed_model)
 
     def store_interaction(self, query, response):
         """
@@ -37,7 +43,7 @@ class VectorDB:
         vector_id = str(hash(query))  # Generate a unique ID for the query
         metadata = {"response": response}
 
-        self.index.upsert([(vector_id, embedding, metadata)])
+        self.index.upsert(vectors=[(vector_id, embedding, metadata)])
 
     def retrieve_similar(self, query, k=2):
         """
