@@ -209,9 +209,8 @@ def extract_category(response: str) -> str:
 
 
 class ResearchAgent:
-    def __init__(self, config):
-        self.config = config
-
+    def __init__(self):
+        
         """Initialize Research Agent with Groq API for structured research-based LLM calls."""
         self.logger = setup_logger()
 
