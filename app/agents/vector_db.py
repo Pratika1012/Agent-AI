@@ -22,7 +22,7 @@ class VectorDB:
         if not self.api_key:
             raise ValueError("❌ Pinecone API Key is missing! Check `.streamlit/secrets.toml`.")
 
-        # ✅ Initialize Pinecone client
+        # ✅ Initialize Pinecone client properly
         try:
             self.pc = Pinecone(api_key=self.api_key)
             print("✅ Pinecone client initialized successfully!")
@@ -44,7 +44,10 @@ class VectorDB:
         try:
             print(f"✅ Loading Pinecone index: {self.index_name}")
             
-            # 🚀 Pass only index name (not Index object) to Langchain
+            # 🚀 FIX: Corrected how the Index object is passed
+            self.index = self.pc.Index(self.index_name)
+
+            # 🚀 FIX: Pass only index name to LangChain
             self.db = LangchainPinecone.from_existing_index(
                 index_name=self.index_name,  # ✅ Correct way
                 embedding=self.embed_model
