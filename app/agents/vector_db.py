@@ -40,12 +40,18 @@ class VectorDB:
                 spec=ServerlessSpec(cloud="aws", region=self.environment)
             )
 
-        # ✅ Now, safely load the existing index
+        # ✅ Correct way to load the index
         try:
+            print(f"✅ Loading Pinecone index: {self.index_name}")
+            # 🚀 Correct way to reference the index
+            self.index = self.pc.Index(self.index_name)  # ✅ This returns pinecone.Index correctly
+
+            # ✅ Correct usage of LangchainPinecone
             self.db = LangchainPinecone.from_existing_index(
-                index_name=self.index_name,  # ✅ Pass only the index name, NOT the Index object
+                index_name=self.index_name,  # ✅ Pass index name, not Index object
                 embedding=self.embed_model
             )
+            print(f"✅ Pinecone index `{self.index_name}` successfully loaded!")
         except Exception as e:
             raise RuntimeError(f"❌ Error loading Pinecone index `{self.index_name}`: {e}")
 
