@@ -30,21 +30,21 @@ class VectorDB:
                 spec=ServerlessSpec(cloud="aws", region=environment)
             )
 
+        # ✅ Connect to the Pinecone index
+        self.index = self.pc.Index(index_name)
+
         # ✅ Corrected: Initialize Pinecone vector store with `text_key`
         self.db = PineconeStore(
-            index=self.pc.Index(index_name),
-            embedding_function=self.embed_model,
-            text_key="text"  # Required for LangChain integration
+            index=self.index,
+            embedding_function=self.embed_model.embed_query,  # ✅ Fix the embedding function
+            text_key="text"  # ✅ Ensure text storage
         )
 
     def store_interaction(self, query, response):
         """
         Stores user queries and responses in Pinecone for future recall.
         """
-        embedding = self.embed_model.embed_query(query)
-        vector_id = str(hash(query))  # Generate a unique ID for the query
         metadata = {"response": response, "text": query}  # ✅ Ensure text_key is provided
-
         self.db.add_texts([query], metadatas=[metadata])
 
     def retrieve_similar(self, query, k=2):
