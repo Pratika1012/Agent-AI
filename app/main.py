@@ -8,6 +8,13 @@ import os
 import logging
 from Utils.logger import setup_logger
 import streamlit as st
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+
+from agents.llm_orchestration import LLMOrchestrator
+
 
 pinecone_api = st.secrets["api_keys"].get("pinecone", "MISSING")
 pinecone_env = st.secrets["pinecone_config"].get("environment", "MISSING")
