@@ -39,7 +39,6 @@ class LLMOrchestrator:
             print("✅ VectorDB initialized successfully!")
         except Exception as e:
             raise RuntimeError(f"❌ Error initializing VectorDB: {e}")
-          # No index_name needed
 
 
     def select_model(self, query: str) -> str:
