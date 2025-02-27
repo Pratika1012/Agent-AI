@@ -19,7 +19,6 @@ logger.info("✅ Logger setup completed successfully.")
 class LLMOrchestrator:
     def __init__(self, config):
         self.config = config
-:
         """Load API keys, model selection, and initialize the Orchestrator with VectorDB."""
         self.logger = setup_logger()
 
@@ -30,7 +29,7 @@ class LLMOrchestrator:
         self.api_keys = st.secrets["api_keys"]
         self.models = st.secrets["models"]
         self.generation_config = st.secrets["generation_config"]
-        self.fallback_models = ST.secrets["claude-2", "mixtral-8x7b-32768"]
+        self.fallback_models = st.secrets["claude-2", "mixtral-8x7b-32768"]
 
         # ✅ Initialize ChromaDB for memory storage (Hugging Face embeddings)
         self.memory = VectorDB()  # No index_name needed
