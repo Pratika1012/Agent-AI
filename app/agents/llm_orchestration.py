@@ -17,8 +17,7 @@ logger = setup_logger()
 logger.info("✅ Logger setup completed successfully.")
 
 class LLMOrchestrator:
-    def __init__(self, config):
-        self.config = config
+    def __init__(self):
         """Load API keys, model selection, and initialize the Orchestrator with VectorDB."""
         self.logger = setup_logger()
 
