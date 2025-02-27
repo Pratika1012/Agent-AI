@@ -1,6 +1,5 @@
 import os
 import streamlit as st
-import pinecone
 from pinecone import Pinecone, ServerlessSpec
 from langchain_community.vectorstores import Pinecone as LangchainPinecone
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -45,7 +44,7 @@ class VectorDB:
             print(f"✅ Connecting to Pinecone index: {self.index_name}")
             
             # 🚀 FIX: Use correct Pinecone Index instance
-            pinecone_index = pinecone.Index(self.index_name)  # ✅ Correct instance
+            pinecone_index = Pinecone.Index(self.index_name)  # ✅ Correct instance
         
             # ✅ Fix: Remove `text_key` parameter (not needed for Pinecone)
             self.db = LangchainPinecone(
