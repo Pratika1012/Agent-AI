@@ -2,7 +2,7 @@ import streamlit as st
 from pinecone import Pinecone, ServerlessSpec
 from langchain.vectorstores import Pinecone as PineconeStore
 from langchain.embeddings import HuggingFaceEmbeddings
-
+import os
 class VectorDB:
     def __init__(self):
         """
