@@ -1,35 +1,37 @@
+
+
 import os
 import json
 import time
 import requests
 import concurrent.futures
 import streamlit as st
+from langchain.chat_models import ChatOpenAI
 from langchain.schema import AIMessage, HumanMessage
 from Utils.logger import setup_logger
 from Utils.token_counter import count_tokens  
-from agents.vector_db import VectorDB  # ✅ Now using Pinecone for Vector Storage
+from agents.vector_db import VectorDB  # ✅ Now using ChromaDB instead of Pinecone
 
 # ✅ Logger Setup
 logger = setup_logger()
 logger.info("✅ Logger setup completed successfully.")
 
 class LLMOrchestrator:
-    def __init__(self):
+    def __init__(self, CONFIG_PATH="config/Configration.json"):
         """Load API keys, model selection, and initialize the Orchestrator with VectorDB."""
         self.logger = setup_logger()
 
-        # ✅ Load API keys & Model Configuration
-        self.api_keys = st.secrets["api_keys"]
-        self.models = st.secrets["models"]
-        self.generation_config = st.secrets["generation_config"]
-        self.fallback_models = st.secrets["models"]["fallback"]
+        # ✅ Load Configuration
+        with open(CONFIG_PATH, "r") as f:
+            self.config = json.load(f)
 
-        # ✅ Initialize Pinecone VectorDB
-        try:
-            self.memory = VectorDB()  # ✅ Now using Pinecone
-            logger.info("✅ VectorDB (Pinecone) initialized successfully!")
-        except Exception as e:
-            raise RuntimeError(f"❌ Error initializing VectorDB: {e}")
+        self.api_keys = self.config["api_keys"]
+        self.models = self.config["models"]
+        self.generation_config = self.config["generation_config"]
+        self.fallback_models = ["claude-2", "mixtral-8x7b-32768"]
+
+        # ✅ Initialize ChromaDB for memory storage (Hugging Face embeddings)
+        self.memory = VectorDB(persist_directory="db_memory")
 
     def select_model(self, query: str) -> str:
         """Dynamically selects the best LLM based on query intent."""
@@ -38,7 +40,7 @@ class LLMOrchestrator:
         if any(word in q_lower for word in ['summarize', 'key points', 'tl;dr']):
             return "llama3-8b-8192"
         elif any(word in q_lower for word in ['code', 'script', 'program', 'scrape', 'scraping']):
-            return "claude-2"
+            return "qwen-2.5-coder-32b"
         else:
             return "mixtral-8x7b-32768"
 
@@ -47,7 +49,7 @@ class LLMOrchestrator:
         retries = 2  # Maximum retry attempts
         for attempt in range(retries + 1):
             start_time = time.time()
-            api_key = st.secrets["api_keys"]["groq"] if "claude" not in model_name else st.secrets["api_keys"]["anthropic"]
+            api_key = self.api_keys["groq"] if "claude" not in model_name else self.api_keys["anthropic"]
 
             headers = {
                 "Authorization": f"Bearer {api_key}",
@@ -87,7 +89,7 @@ class LLMOrchestrator:
                     input_tokens = count_tokens(query, model_name)
                     output_tokens = count_tokens(output_text, model_name)
                     total_tokens = input_tokens + output_tokens
-                    cost_per_1000_tokens = st.secrets["pricing_per_1000_tokens"].get(model_name, 0.01)
+                    cost_per_1000_tokens = self.config["pricing_per_1000_tokens"].get(model_name, 0.01)
                     total_cost = (total_tokens / 1000) * cost_per_1000_tokens
 
                     self.logger.info(
@@ -98,7 +100,7 @@ class LLMOrchestrator:
                         f"• Estimated Cost: ${total_cost:.4f}\n"
                     )
 
-                    # ✅ Store query-response pair in Pinecone VectorDB
+                    # ✅ Store query-response pair in memory
                     self.memory.store_interaction(query, output_text)
 
                     return output_text
@@ -122,7 +124,7 @@ class LLMOrchestrator:
         selected_model = self.select_model(query)
         self.logger.info(f"[Routing] Query: {query} → Selected Model: {selected_model}")
 
-        # ✅ Retrieve similar past interactions from Pinecone
+        # ✅ Retrieve similar past interactions
         past_responses = self.memory.retrieve_similar(query)
         if past_responses:
             self.logger.info(f"[Memory] Found similar past responses: {past_responses}")
@@ -131,7 +133,7 @@ class LLMOrchestrator:
         # ✅ Generate new response
         response = self.call_model(selected_model, query)
 
-        # ✅ Store new interaction in memory (Pinecone)
+        # ✅ Store new interaction in memory
         self.memory.store_interaction(query, response)
 
         return response  # ✅ Ensure function returns response correctly
