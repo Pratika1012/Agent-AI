@@ -44,18 +44,18 @@ class VectorDB:
         try:
             print(f"✅ Connecting to Pinecone index: {self.index_name}")
             
-            # 🚀 FIX: Get the correct Pinecone `Index` object
-            pinecone_index = self.pc.Index(self.index_name)  # ✅ Get `pinecone.Index`
-
-            # ✅ Now use the correct Pinecone `Index` object in LangChain
+            # 🚀 FIX: Use correct Pinecone Index instance
+            pinecone_index = pinecone.Index(self.index_name)  # ✅ Correct instance
+        
+            # ✅ Fix: Remove `text_key` parameter (not needed for Pinecone)
             self.db = LangchainPinecone(
                 index=pinecone_index,  # ✅ Correct instance
-                embedding=self.embed_model,
-                text_key="text" 
+                embedding=self.embed_model  # ✅ Use embedding model
             )
             print(f"✅ Pinecone index `{self.index_name}` successfully loaded!")
         except Exception as e:
             raise RuntimeError(f"❌ Error loading Pinecone index `{self.index_name}`: {e}")
+
 
     def store_interaction(self, query: str, response: str):
         """
