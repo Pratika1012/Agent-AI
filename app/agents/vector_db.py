@@ -3,7 +3,6 @@ import streamlit as st
 from pinecone import Pinecone, ServerlessSpec
 from langchain.vectorstores import Pinecone as PineconeStore
 from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.schema import Document
 
 class VectorDB:
     def __init__(self):
@@ -31,9 +30,12 @@ class VectorDB:
                 spec=ServerlessSpec(cloud="aws", region=environment)
             )
 
-        # ✅ Connect to the Pinecone index
-        self.index = self.pc.Index(index_name)
-        self.db = PineconeStore(self.index, self.embed_model)
+        # ✅ Corrected: Initialize Pinecone vector store with `text_key`
+        self.db = PineconeStore(
+            index=self.pc.Index(index_name),
+            embedding_function=self.embed_model,
+            text_key="text"  # Required for LangChain integration
+        )
 
     def store_interaction(self, query, response):
         """
@@ -41,21 +43,19 @@ class VectorDB:
         """
         embedding = self.embed_model.embed_query(query)
         vector_id = str(hash(query))  # Generate a unique ID for the query
-        metadata = {"response": response}
+        metadata = {"response": response, "text": query}  # ✅ Ensure text_key is provided
 
-        self.index.upsert(vectors=[(vector_id, embedding, metadata)])
+        self.db.add_texts([query], metadatas=[metadata])
 
     def retrieve_similar(self, query, k=2):
         """
         Retrieves past similar queries to provide context-aware responses.
         """
-        embedding = self.embed_model.embed_query(query)
-        results = self.index.query(vector=embedding, top_k=k, include_metadata=True)
-        
-        return [match["metadata"]["response"] for match in results["matches"] if "metadata" in match]
+        results = self.db.similarity_search(query, k=k)
+        return [doc.metadata["response"] for doc in results]
 
     def clear_memory(self):
         """
         Clears all stored interactions in the Pinecone vector database.
         """
-        self.index.delete(delete_all=True)
+        self.pc.delete_index(st.secrets["pinecone_config"]["index_name"])
