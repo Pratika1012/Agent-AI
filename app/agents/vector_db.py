@@ -3,6 +3,7 @@ import streamlit as st
 import pinecone
 from langchain_community.vectorstores import Pinecone as LangchainPinecone
 from langchain_community.embeddings import HuggingFaceEmbeddings
+from pinecone import Pinecone, ServerlessSpec
 
 class VectorDB:
     def __init__(self):
@@ -21,17 +22,14 @@ class VectorDB:
         if not self.api_key:
             raise ValueError("❌ Pinecone API Key is missing! Check `.streamlit/secrets.toml`.")
 
-        # ✅ Explicitly set the Pinecone API Key in environment variables
-        os.environ["PINECONE_API_KEY"] = self.api_key
-
-        # ✅ Initialize Pinecone client properly
+        # ✅ Initialize Pinecone client correctly
         try:
-            self.pc = pinecone.Pinecone(api_key=self.api_key)
-            print("✅ Pinecone initialized successfully!")
+            self.pc = Pinecone(api_key=self.api_key)
+            print("✅ Pinecone client initialized successfully!")
         except Exception as e:
-            raise RuntimeError(f"❌ Error initializing Pinecone: {e}")
+            raise RuntimeError(f"❌ Error initializing Pinecone client: {e}")
 
-        # ✅ Ensure the index exists before using `from_existing_index`
+        # ✅ Ensure the index exists before using it
         existing_indexes = self.pc.list_indexes().names()
         if self.index_name not in existing_indexes:
             print(f"⚠️ Creating new Pinecone index: {self.index_name}")
@@ -39,14 +37,13 @@ class VectorDB:
                 name=self.index_name,
                 dimension=384,  # Match embedding model
                 metric="cosine",
-                spec=pinecone.ServerlessSpec(cloud="aws", region=self.environment)
+                spec=ServerlessSpec(cloud="aws", region=self.environment)
             )
 
         # ✅ Now, safely load the existing index
         try:
-            self.index = self.pc.Index(self.index_name)
-            self.db = LangchainPinecone(
-                index=self.index,  # ✅ Pass Pinecone index object directly
+            self.db = LangchainPinecone.from_existing_index(
+                index_name=self.index_name,  # ✅ Pass only the index name, NOT the Index object
                 embedding=self.embed_model
             )
         except Exception as e:
@@ -59,7 +56,7 @@ class VectorDB:
         embedding = self.embed_model.embed_query(query)
 
         # ✅ Upsert the embedding into Pinecone with metadata
-        self.index.upsert([
+        self.db.upsert([
             {
                 "id": query,
                 "values": embedding,
@@ -75,22 +72,14 @@ class VectorDB:
         embedding = self.embed_model.embed_query(query)
 
         # ✅ Query Pinecone for similar vectors
-        results = self.index.query(
-            vector=embedding,
-            top_k=k,
-            include_metadata=True
-        )
+        results = self.db.similarity_search_by_vector(embedding, k=k)
 
         # ✅ Extract responses from metadata
-        if results.get("matches"):
-            return [match["metadata"]["response"] for match in results["matches"]]
-        else:
-            print("⚠️ No similar interactions found.")
-            return []
+        return [res.metadata["response"] for res in results] if results else []
 
     def clear_memory(self):
         """
         Clears all stored interactions in the Pinecone index.
         """
-        self.index.delete(delete_all=True)
+        self.db.delete(delete_all=True)
         print("🗑️ Cleared all interactions from Pinecone index.")
