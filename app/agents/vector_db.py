@@ -22,7 +22,7 @@ class VectorDB:
         if not self.api_key:
             raise ValueError("❌ Pinecone API Key is missing! Check `.streamlit/secrets.toml`.")
 
-        # ✅ Initialize Pinecone client properly
+        # ✅ Initialize Pinecone v3 client properly
         try:
             self.pc = Pinecone(api_key=self.api_key)
             print("✅ Pinecone client initialized successfully!")
@@ -40,13 +40,16 @@ class VectorDB:
                 spec=ServerlessSpec(cloud="aws", region=self.environment)
             )
 
-        # ✅ Load the existing index name into LangChain
+        # ✅ Load the existing Pinecone index correctly
         try:
             print(f"✅ Connecting to Pinecone index: {self.index_name}")
             
-            # 🚀 FIX: Pass only `index_name`, NOT `self.index`
-            self.db = LangchainPinecone.from_existing_index(
-                index_name=self.index_name,  # ✅ Correct way
+            # 🚀 FIX: Get the correct Pinecone `Index` object
+            pinecone_index = self.pc.Index(self.index_name)  # ✅ Get `pinecone.Index`
+
+            # ✅ Now use the correct Pinecone `Index` object in LangChain
+            self.db = LangchainPinecone(
+                index=pinecone_index,  # ✅ Correct instance
                 embedding=self.embed_model
             )
             print(f"✅ Pinecone index `{self.index_name}` successfully loaded!")
