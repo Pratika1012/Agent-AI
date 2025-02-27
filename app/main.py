@@ -7,8 +7,16 @@ from Utils.token_counter import count_tokens
 import os
 import logging
 from Utils.logger import setup_logger
-import sqlite3
-print(sqlite3.sqlite_version)
+import streamlit as st
+
+pinecone_api = st.secrets["api_keys"].get("pinecone", "MISSING")
+pinecone_env = st.secrets["pinecone_config"].get("environment", "MISSING")
+pinecone_index = st.secrets["pinecone_config"].get("index_name", "MISSING")
+
+print(f"Pinecone API Key: {pinecone_api}")
+print(f"Pinecone Environment: {pinecone_env}")
+print(f"Pinecone Index Name: {pinecone_index}")
+
 
 
 # ✅ Correct config path
