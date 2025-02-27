@@ -40,14 +40,11 @@ class VectorDB:
                 spec=ServerlessSpec(cloud="aws", region=self.environment)
             )
 
-        # ✅ Correct way to load the index
+        # ✅ Load the existing index name into LangChain
         try:
-            print(f"✅ Loading Pinecone index: {self.index_name}")
+            print(f"✅ Connecting to Pinecone index: {self.index_name}")
             
-            # 🚀 FIX: Corrected how the Index object is passed
-            self.index = self.pc.Index(self.index_name)
-
-            # 🚀 FIX: Pass only index name to LangChain
+            # 🚀 FIX: Pass only `index_name`, NOT `self.index`
             self.db = LangchainPinecone.from_existing_index(
                 index_name=self.index_name,  # ✅ Correct way
                 embedding=self.embed_model
@@ -62,7 +59,7 @@ class VectorDB:
         """
         embedding = self.embed_model.embed_query(query)
 
-        # ✅ Upsert the embedding into Pinecone with metadata
+        # ✅ Use LangChain's add_texts function
         self.db.add_texts(
             texts=[query],
             metadatas=[{"response": response}]
