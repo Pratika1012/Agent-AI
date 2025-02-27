@@ -33,7 +33,13 @@ class LLMOrchestrator:
 
 
         # ✅ Initialize ChromaDB for memory storage (Hugging Face embeddings)
-        self.memory = VectorDB()  # No index_name needed
+        # ✅ Initialize VectorDB correctly
+        try:
+            self.memory = VectorDB()
+            print("✅ VectorDB initialized successfully!")
+        except Exception as e:
+            raise RuntimeError(f"❌ Error initializing VectorDB: {e}")
+          # No index_name needed
 
 
     def select_model(self, query: str) -> str:
