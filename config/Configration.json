@@ -2,7 +2,7 @@
     "api_keys": {
         "groq": "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",
         "anthropic": "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",
-        "pinecone":"pcsk_6KiBhC_GcA4vkxqimCfpYYUHcEyhT3uKracyHvLQE6sca3vsQrsF78E8jqEmkR5f6PRc48"
+        "PINECONE_API_KEY":"pcsk_6KiBhC_GcA4vkxqimCfpYYUHcEyhT3uKracyHvLQE6sca3vsQrsF78E8jqEmkR5f6PRc48"
 
     },
     "models": {
