@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 from pinecone import Pinecone, ServerlessSpec
 from langchain.vectorstores import Pinecone as PineconeStore
@@ -9,10 +10,13 @@ class VectorDB:
         Initialize Pinecone vector storage with Hugging Face embeddings.
         Loads API key, environment, and index name from Streamlit secrets.
         """
-        # ✅ Explicitly Fetch Pinecone API Key
-        api_key = st.secrets["api_keys"].get("pinecone")
+        # ✅ Fetch Pinecone API Key with Fallback
+        api_key = st.secrets["api_keys"].get("pinecone", os.getenv("PINECONE_API_KEY"))
         if not api_key:
-            raise RuntimeError("❌ PINECONE_API_KEY is missing from secrets!")
+            raise RuntimeError("❌ PINECONE_API_KEY is missing from secrets or environment variables!")
+
+        # ✅ Set API key as environment variable (Fix for Pinecone SDK)
+        os.environ["PINECONE_API_KEY"] = api_key
 
         # ✅ Load Pinecone Configuration
         environment = st.secrets["pinecone_config"].get("environment", "us-east-1")
@@ -22,16 +26,16 @@ class VectorDB:
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         # ✅ Initialize Pinecone with Explicit API Key
-        self.pc = Pinecone(api_key=api_key)
+        self.pc = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
 
         # ✅ Ensure Index Exists
         existing_indexes = self.pc.list_indexes().names()
         if index_name not in existing_indexes:
             self.pc.create_index(
                 name=index_name,
-                dimension=384,  # Ensure this matches your embedding model's output dimensions
+                dimension=384,
                 metric="cosine",
-                spec=ServerlessSpec(cloud="aws", region=environment)  # ✅ Corrected API usage
+                spec=ServerlessSpec(cloud="aws", region=environment)
             )
 
         # ✅ Connect to the Pinecone Index
@@ -47,7 +51,7 @@ class VectorDB:
         """
         Stores user queries and responses in Pinecone for future recall.
         """
-        metadata = {"response": response, "text": query}  # ✅ Ensure text_key is provided
+        metadata = {"response": response, "text": query}
         self.db.add_texts([query], metadatas=[metadata])
 
     def retrieve_similar(self, query, k=2):
