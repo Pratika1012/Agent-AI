@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import pinecone
 from langchain_community.vectorstores import Pinecone as LangchainPinecone
@@ -12,7 +13,7 @@ class VectorDB:
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         # ✅ Load Pinecone credentials from Streamlit secrets
-        self.api_key = st.secrets["api_keys"].get("pinecone", None)
+        self.api_key = st.secrets["api_keys"].get("pinecone")
         self.environment = st.secrets["pinecone_config"].get("environment", "us-east-1")
         self.index_name = st.secrets["pinecone_config"].get("index_name", "ai-memory")
 
@@ -20,7 +21,10 @@ class VectorDB:
         if not self.api_key:
             raise ValueError("❌ Pinecone API Key is missing! Check `.streamlit/secrets.toml`.")
 
-        # ✅ Initialize Pinecone client
+        # ✅ Explicitly set the Pinecone API Key in environment variables
+        os.environ["PINECONE_API_KEY"] = self.api_key
+
+        # ✅ Initialize Pinecone client properly
         try:
             self.pc = pinecone.Pinecone(api_key=self.api_key)
             print("✅ Pinecone initialized successfully!")
