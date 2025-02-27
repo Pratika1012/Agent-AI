@@ -12,13 +12,13 @@ class VectorDB:
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         # ✅ Load Pinecone credentials from Streamlit secrets
-        try:
-            self.api_key = st.secrets["api_keys"]["pinecone"]
-            self.environment = st.secrets["pinecone_config"]["environment"]
-            self.index_name = st.secrets["pinecone_config"]["index_name"]
-        except KeyError as e:
-            st.error(f"❌ Missing Pinecone secret: {e}")
-            raise ValueError("Pinecone API Key or Environment not found in secrets.toml")
+        self.api_key = st.secrets["api_keys"].get("pinecone", None)
+        self.environment = st.secrets["pinecone_config"].get("environment", "us-east-1")
+        self.index_name = st.secrets["pinecone_config"].get("index_name", "ai-memory")
+
+        # ✅ Ensure API key is available
+        if not self.api_key:
+            raise ValueError("❌ Pinecone API Key is missing! Check `.streamlit/secrets.toml`.")
 
         # ✅ Initialize Pinecone client
         try:
@@ -27,10 +27,10 @@ class VectorDB:
         except Exception as e:
             raise RuntimeError(f"❌ Error initializing Pinecone: {e}")
 
-        # ✅ Check if index exists, create if missing
+        # ✅ Ensure the index exists before using `from_existing_index`
         existing_indexes = self.pc.list_indexes().names()
         if self.index_name not in existing_indexes:
-            print(f"⚠️ Creating Pinecone index: {self.index_name}")
+            print(f"⚠️ Creating new Pinecone index: {self.index_name}")
             self.pc.create_index(
                 name=self.index_name,
                 dimension=384,  # Match embedding model
@@ -38,14 +38,15 @@ class VectorDB:
                 spec=pinecone.ServerlessSpec(cloud="aws", region=self.environment)
             )
 
-        # ✅ Connect to the Pinecone index
-        self.index = self.pc.Index(self.index_name)
-
-        # ✅ Initialize Langchain Pinecone wrapper
-        self.db = LangchainPinecone.from_existing_index(
-            index_name=self.index_name,
-            embedding=self.embed_model
-        )
+        # ✅ Now, safely load the existing index
+        try:
+            self.index = self.pc.Index(self.index_name)
+            self.db = LangchainPinecone.from_existing_index(
+                index_name=self.index_name,
+                embedding=self.embed_model
+            )
+        except Exception as e:
+            raise RuntimeError(f"❌ Error loading Pinecone index `{self.index_name}`: {e}")
 
     def store_interaction(self, query: str, response: str):
         """
