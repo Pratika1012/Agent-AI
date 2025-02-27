@@ -1,6 +1,5 @@
-import os
 import streamlit as st
-from pinecone import Pinecone, ServerlessSpec
+import pinecone
 from langchain.vectorstores import Pinecone as PineconeStore
 from langchain.embeddings import HuggingFaceEmbeddings
 
@@ -18,26 +17,25 @@ class VectorDB:
         # ✅ Load Hugging Face sentence-transformer model
         self.embed_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-        # ✅ Initialize Pinecone instance (New Method)
-        self.pc = Pinecone(api_key=api_key)
+        # ✅ Initialize Pinecone (Correct Method)
+        pinecone.init(api_key=api_key, environment=environment)
 
         # ✅ Check if the index exists, else create it
-        if index_name not in self.pc.list_indexes().names():
-            self.pc.create_index(
+        if index_name not in pinecone.list_indexes():
+            pinecone.create_index(
                 name=index_name,
                 dimension=384,  # Ensure this matches your embedding model's output dimensions
-                metric="cosine",
-                spec=ServerlessSpec(cloud="aws", region=environment)
+                metric="cosine"
             )
 
         # ✅ Connect to the Pinecone index
-        self.index = self.pc.Index(index_name)
+        self.index = pinecone.Index(index_name)
 
-        # ✅ Corrected: Initialize Pinecone vector store with `text_key`
+        # ✅ Corrected: Initialize LangChain's Pinecone VectorStore
         self.db = PineconeStore(
-            index=self.index,
-            embedding_function=self.embed_model.embed_query,  # ✅ Fix the embedding function
-            text_key="text"  # ✅ Ensure text storage
+            self.index,  # Pass Pinecone index instance
+            self.embed_model,  # Pass embedding function
+            "text"  # Set text_key explicitly
         )
 
     def store_interaction(self, query, response):
@@ -58,4 +56,4 @@ class VectorDB:
         """
         Clears all stored interactions in the Pinecone vector database.
         """
-        self.pc.delete_index(st.secrets["pinecone_config"]["index_name"])
+        pinecone.delete_index(st.secrets["pinecone_config"]["index_name"])
