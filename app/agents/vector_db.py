@@ -41,8 +41,8 @@ class VectorDB:
         # ✅ Now, safely load the existing index
         try:
             self.index = self.pc.Index(self.index_name)
-            self.db = LangchainPinecone.from_existing_index(
-                index_name=self.index_name,
+            self.db = LangchainPinecone(
+                index=self.index,  # ✅ Pass Pinecone index object directly
                 embedding=self.embed_model
             )
         except Exception as e:
