@@ -1,9 +1,9 @@
 import os
 import streamlit as st
 import pinecone
+from pinecone import Pinecone, ServerlessSpec
 from langchain_community.vectorstores import Pinecone as LangchainPinecone
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from pinecone import Pinecone, ServerlessSpec
 
 class VectorDB:
     def __init__(self):
@@ -22,7 +22,7 @@ class VectorDB:
         if not self.api_key:
             raise ValueError("❌ Pinecone API Key is missing! Check `.streamlit/secrets.toml`.")
 
-        # ✅ Initialize Pinecone client correctly
+        # ✅ Initialize Pinecone client
         try:
             self.pc = Pinecone(api_key=self.api_key)
             print("✅ Pinecone client initialized successfully!")
@@ -43,12 +43,10 @@ class VectorDB:
         # ✅ Correct way to load the index
         try:
             print(f"✅ Loading Pinecone index: {self.index_name}")
-            # 🚀 Correct way to reference the index
-            self.index = self.pc.Index(self.index_name)  # ✅ This returns pinecone.Index correctly
-
-            # ✅ Correct usage of LangchainPinecone
+            
+            # 🚀 Pass only index name (not Index object) to Langchain
             self.db = LangchainPinecone.from_existing_index(
-                index_name=self.index_name,  # ✅ Pass index name, not Index object
+                index_name=self.index_name,  # ✅ Correct way
                 embedding=self.embed_model
             )
             print(f"✅ Pinecone index `{self.index_name}` successfully loaded!")
@@ -62,13 +60,10 @@ class VectorDB:
         embedding = self.embed_model.embed_query(query)
 
         # ✅ Upsert the embedding into Pinecone with metadata
-        self.db.upsert([
-            {
-                "id": query,
-                "values": embedding,
-                "metadata": {"response": response}
-            }
-        ])
+        self.db.add_texts(
+            texts=[query],
+            metadatas=[{"response": response}]
+        )
         print(f"✅ Stored interaction: {query} -> {response}")
 
     def retrieve_similar(self, query: str, k: int = 2):
