@@ -12,7 +12,7 @@ markdown-it-py
 mdurl
 pygments
 langchain_community
-pinecone # Use the latest stable version of ChromaDB
+pinecone-client # Use the latest stable version of ChromaDB
 sentence-transformers
 torch
 transformers
