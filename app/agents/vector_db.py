@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-from pinecone import Pinecone, ServerlessSpec
+import pinecone
 from langchain_community.vectorstores import Pinecone as LangchainPinecone
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
@@ -21,40 +21,38 @@ class VectorDB:
         if not self.api_key:
             raise ValueError("❌ Pinecone API Key is missing! Check `.streamlit/secrets.toml`.")
 
-        # ✅ Initialize Pinecone v3 client properly
+        # ✅ Initialize Pinecone client properly
         try:
-            self.pc = Pinecone(api_key=self.api_key)
+            pinecone.init(api_key=self.api_key, environment=self.environment)
             print("✅ Pinecone client initialized successfully!")
         except Exception as e:
             raise RuntimeError(f"❌ Error initializing Pinecone client: {e}")
 
         # ✅ Ensure the index exists before using it
-        existing_indexes = self.pc.list_indexes().names()
+        existing_indexes = pinecone.list_indexes()
         if self.index_name not in existing_indexes:
             print(f"⚠️ Creating new Pinecone index: {self.index_name}")
-            self.pc.create_index(
+            pinecone.create_index(
                 name=self.index_name,
                 dimension=384,  # Match embedding model
-                metric="cosine",
-                spec=ServerlessSpec(cloud="aws", region=self.environment)
+                metric="cosine"
             )
 
         # ✅ Load the existing Pinecone index correctly
         try:
             print(f"✅ Connecting to Pinecone index: {self.index_name}")
-            
+
             # 🚀 FIX: Use correct Pinecone Index instance
-            pinecone_index = Pinecone.Index(self.index_name)  # ✅ Correct instance
-        
+            pinecone_index = pinecone.Index(self.index_name)  # ✅ Correct instance
+
             # ✅ Fix: Remove `text_key` parameter (not needed for Pinecone)
             self.db = LangchainPinecone(
                 index=pinecone_index,  # ✅ Correct instance
-                embedding=self.embed_model  # ✅ Use embedding model
+                embedding=self.embed_model
             )
             print(f"✅ Pinecone index `{self.index_name}` successfully loaded!")
         except Exception as e:
             raise RuntimeError(f"❌ Error loading Pinecone index `{self.index_name}`: {e}")
-
 
     def store_interaction(self, query: str, response: str):
         """
@@ -85,5 +83,5 @@ class VectorDB:
         """
         Clears all stored interactions in the Pinecone index.
         """
-        self.db.delete(delete_all=True)
+        pinecone.delete_index(self.index_name)
         print("🗑️ Cleared all interactions from Pinecone index.")
