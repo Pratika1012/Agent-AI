@@ -1,16 +1,13 @@
-
-
 import os
 import json
 import time
 import requests
 import concurrent.futures
 import streamlit as st
-from langchain.chat_models import ChatOpenAI
 from langchain.schema import AIMessage, HumanMessage
 from Utils.logger import setup_logger
 from Utils.token_counter import count_tokens  
-from agents.vector_db import VectorDB  # ✅ Now using ChromaDB instead of Pinecone
+from agents.vector_db import VectorDB  # ✅ Now using Pinecone for Vector Storage
 
 # ✅ Logger Setup
 logger = setup_logger()
@@ -21,24 +18,18 @@ class LLMOrchestrator:
         """Load API keys, model selection, and initialize the Orchestrator with VectorDB."""
         self.logger = setup_logger()
 
-        # ✅ Load Configuration
-        # with open(CONFIG_PATH, "r") as f:
-        #     self.config = json.load(f)
-
+        # ✅ Load API keys & Model Configuration
         self.api_keys = st.secrets["api_keys"]
         self.models = st.secrets["models"]
         self.generation_config = st.secrets["generation_config"]
         self.fallback_models = st.secrets["models"]["fallback"]
 
-
-        # ✅ Initialize ChromaDB for memory storage (Hugging Face embeddings)
-        # ✅ Initialize VectorDB correctly
+        # ✅ Initialize Pinecone VectorDB
         try:
-            self.memory = VectorDB()
-            print("✅ VectorDB initialized successfully!")
+            self.memory = VectorDB()  # ✅ Now using Pinecone
+            logger.info("✅ VectorDB (Pinecone) initialized successfully!")
         except Exception as e:
             raise RuntimeError(f"❌ Error initializing VectorDB: {e}")
-
 
     def select_model(self, query: str) -> str:
         """Dynamically selects the best LLM based on query intent."""
@@ -96,7 +87,7 @@ class LLMOrchestrator:
                     input_tokens = count_tokens(query, model_name)
                     output_tokens = count_tokens(output_text, model_name)
                     total_tokens = input_tokens + output_tokens
-                    cost_per_1000_tokens = self.config["pricing_per_1000_tokens"].get(model_name, 0.01)
+                    cost_per_1000_tokens = st.secrets["pricing_per_1000_tokens"].get(model_name, 0.01)
                     total_cost = (total_tokens / 1000) * cost_per_1000_tokens
 
                     self.logger.info(
@@ -107,7 +98,7 @@ class LLMOrchestrator:
                         f"• Estimated Cost: ${total_cost:.4f}\n"
                     )
 
-                    # ✅ Store query-response pair in memory
+                    # ✅ Store query-response pair in Pinecone VectorDB
                     self.memory.store_interaction(query, output_text)
 
                     return output_text
@@ -131,7 +122,7 @@ class LLMOrchestrator:
         selected_model = self.select_model(query)
         self.logger.info(f"[Routing] Query: {query} → Selected Model: {selected_model}")
 
-        # ✅ Retrieve similar past interactions
+        # ✅ Retrieve similar past interactions from Pinecone
         past_responses = self.memory.retrieve_similar(query)
         if past_responses:
             self.logger.info(f"[Memory] Found similar past responses: {past_responses}")
@@ -140,7 +131,7 @@ class LLMOrchestrator:
         # ✅ Generate new response
         response = self.call_model(selected_model, query)
 
-        # ✅ Store new interaction in memory
+        # ✅ Store new interaction in memory (Pinecone)
         self.memory.store_interaction(query, response)
 
         return response  # ✅ Ensure function returns response correctly
