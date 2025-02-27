@@ -198,7 +198,7 @@ import re  # For extracting category from response
 from langchain.prompts import PromptTemplate
 from Utils.logger import setup_logger
 from Utils.token_counter import count_tokens
-
+from agents.vector_db import VectorDB  # ✅ Now using Pinecone for vector storage
 
 def extract_category(response: str) -> str:
     """Extracts only the category name from the API response."""
@@ -207,16 +207,12 @@ def extract_category(response: str) -> str:
         return match.group(1).lower().replace("-", "_").replace(" ", "_")
     return "chain_of_thought"  # Default fallback if classification fails
 
-
 class ResearchAgent:
     def __init__(self):
-        
-        """Initialize Research Agent with Groq API for structured research-based LLM calls."""
+        """Initialize Research Agent with Groq API and Pinecone VectorDB for memory storage."""
         self.logger = setup_logger()
 
-        # with open(CONFIG_PATH, "r") as f:
-        #     self.config = json.load(f)
-
+        # ✅ Load API Keys & Model Configurations
         self.api_key = st.secrets["api_keys"]["groq"]
         self.default_model = st.secrets["models"]["default"]
         self.base_url = "https://api.groq.com/openai/v1/chat/completions"
@@ -224,6 +220,13 @@ class ResearchAgent:
         model_config = st.secrets["generation_config"].get(self.default_model, {})
         self.temperature = model_config.get("temperature", 0.1)
         self.max_tokens = model_config.get("max_tokens", 2048)
+
+        # ✅ Initialize Pinecone VectorDB
+        try:
+            self.memory = VectorDB()  # ✅ Now using Pinecone for storage
+            self.logger.info("✅ VectorDB (Pinecone) initialized successfully!")
+        except Exception as e:
+            raise RuntimeError(f"❌ Error initializing VectorDB: {e}")
 
         # ✅ Define Prompt Templates
         self.chain_of_thought_template = PromptTemplate(
@@ -284,7 +287,6 @@ class ResearchAgent:
         
         return style_response
 
-
     def dynamic_complexity_analysis(self, query: str) -> str:
         """Infer prompting style dynamically based on query length, complexity, and keywords."""
 
@@ -302,9 +304,6 @@ class ResearchAgent:
         # ✅ **Default to Chain-of-Thought** (Simple, Direct Queries)
         return "chain_of_thought"
 
-
-
-    
     def call_groq_api(self, query: str) -> str:
         """Calls the Groq API and returns response."""
         headers = {
@@ -312,7 +311,7 @@ class ResearchAgent:
             "Content-Type": "application/json"
         }
         payload = {
-            "model": self.model_name,
+            "model": self.default_model,
             "messages": [{"role": "user", "content": query}],
             "max_tokens": 512,
             "temperature": 0.1
@@ -334,49 +333,25 @@ class ResearchAgent:
     def generate_response(self, query: str):
         """Generate structured response using selected prompt style with token tracking."""
 
+        # ✅ Retrieve similar past research queries from Pinecone
+        past_responses = self.memory.retrieve_similar(query)
+        if past_responses:
+            self.logger.info(f"[Memory] Found similar past research responses: {past_responses}")
+            query = f"Past research responses: {past_responses} \n\n Current Research Query: {query}"
+
         style = self.choose_prompt_style(query)
         formatted_query = getattr(self, f"{style}_template").format(query=query)
-
-        # ✅ Count input tokens for initial request
-        input_tokens_initial = count_tokens(formatted_query, self.model_name)
 
         # ✅ Get Initial Response
         initial_response = self.call_groq_api(formatted_query)
 
-        # ✅ Count output tokens for initial response
-        output_tokens_initial = count_tokens(initial_response, self.model_name)
-
         # ✅ Prepare Refined Query
         refined_query = self.refinement_template.format(query=query, initial_response=initial_response)
-
-        # ✅ Count input tokens for refined request
-        input_tokens_refined = count_tokens(refined_query, self.model_name)
 
         # ✅ Get Refined Response
         refined_response = self.call_groq_api(refined_query)
 
-        # ✅ Count output tokens for refined response
-        output_tokens_refined = count_tokens(refined_response, self.model_name)
+        # ✅ Store research query-response pair in Pinecone VectorDB
+        self.memory.store_interaction(query, refined_response)
 
-        # ✅ Compute Total Tokens
-        total_input_tokens = input_tokens_initial + input_tokens_refined
-        total_output_tokens = output_tokens_initial + output_tokens_refined
-        total_tokens = total_input_tokens + total_output_tokens
-
-        model_info = {
-            "model": style,
-            "total_input_tokens": total_input_tokens,
-            "total_output_tokens": total_output_tokens,
-            "total_tokens": total_tokens
-        }
-
-        # ✅ Log Token Usage
-        self.logger.info(
-            f"[Token Usage]\n"
-            f"• Prompting Style: {style}\n"
-            f"• Input Tokens (Initial + Refined): {total_input_tokens}\n"
-            f"• Output Tokens (Initial + Refined): {total_output_tokens}\n"
-            f"• Total Tokens: {total_tokens}\n"
-        )
-
-        return refined_response, model_info
+        return refined_response
