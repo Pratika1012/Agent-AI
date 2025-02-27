@@ -20,14 +20,15 @@ print(f"Pinecone Index Name: {pinecone_index}")
 
 
 # ✅ Correct config path
-CONFIG_PATH = r"C:\Users\HP\Desktop\Agent-AI\config\Configration.json"
+
 
 logger = setup_logger()
 logger.info("✅ Logger setup completed successfully.")
 
 # ✅ Initialize LLM Orchestrator and Research Agent
-orchestrator = LLMOrchestrator(CONFIG_PATH=CONFIG_PATH)
-research_agent = ResearchAgent(CONFIG_PATH=CONFIG_PATH)
+orchestrator = LLMOrchestrator(config=st.secrets)
+research_agent = ResearchAgent(config=st.secrets)
+
 
 # ✅ Streamlit UI
 st.title("Agentic AI LLM Orchestration 🚀")
