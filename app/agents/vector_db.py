@@ -50,7 +50,8 @@ class VectorDB:
             # ✅ Now use the correct Pinecone `Index` object in LangChain
             self.db = LangchainPinecone(
                 index=pinecone_index,  # ✅ Correct instance
-                embedding=self.embed_model
+                embedding=self.embed_model,
+                text_key="text" 
             )
             print(f"✅ Pinecone index `{self.index_name}` successfully loaded!")
         except Exception as e:
