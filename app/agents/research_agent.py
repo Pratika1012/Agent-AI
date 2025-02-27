@@ -209,7 +209,9 @@ def extract_category(response: str) -> str:
 
 
 class ResearchAgent:
-    def __init__(self, CONFIG_PATH=r"C:\Users\HP\Desktop\Agent-AI\config\Configration.json"):
+    def __init__(self, config):
+        self.config = config
+
         """Initialize Research Agent with Groq API for structured research-based LLM calls."""
         self.logger = setup_logger()
 
